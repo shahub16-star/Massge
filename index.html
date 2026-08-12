@@ -1,1650 +1,964 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="light">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>دفتر المبيعات — الأرباح والخسائر</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>نظام إعداد رسائل إدارة الاستخدام</title>
 <style>
-/* ================================================================
-   0) نظام التصميم — الألوان والمقاسات
-   ================================================================ */
-:root{
-  --brand:#0d6e64;   --brand-600:#0a544c;  --brand-50:#e8f5f2;
-  --ink:#0f1b2a;     --muted:#5b6b7c;      --faint:#93a1b0;
-  --canvas:#f1f5f7;  --surface:#ffffff;    --raise:#f8fafb;
-  --line:#e2e9ee;
+  :root{
+    --ink:#1c2b3a;
+    --navy:#0f3a5c;
+    --navy-deep:#0a2740;
+    --gold:#a9822f;
+    --gold-soft:#c9a24b;
+    --paper:#fbfaf6;
+    --line:#d9d3c2;
+    --panel:#ffffff;
+    --bg:#eef1f3;
+    --muted:#6b7580;
+    --danger:#b5452f;
+    --good:#2f7d5a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
 
-  --up:#0f7a52;      --up-bg:#e7f5ee;
-  --down:#b42318;    --down-bg:#fdecea;
-  --warn:#b45309;    --warn-bg:#fdf4e6;
-  --blue:#2f5fd0;    --blue-bg:#eaf0fd;
+  /* ===== App shell ===== */
+  .topbar{
+    background:linear-gradient(135deg,var(--navy-deep),var(--navy) 70%);
+    color:#fff;
+    padding:16px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    box-shadow:0 2px 10px rgba(10,39,64,.25);
+    position:sticky;
+    top:0;
+    z-index:50;
+  }
+  .topbar .brand{display:flex;align-items:center;gap:12px;}
+  .topbar .emblem{
+    width:40px;height:40px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold-soft), var(--gold) 60%, #8a6a24 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;color:#12233a;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);
+    flex-shrink:0;
+  }
+  .topbar h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;}
+  .topbar p{margin:2px 0 0;font-size:12px;color:#cfe0ee;font-weight:400;}
+  .top-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{
+    border:none;border-radius:9px;padding:9px 16px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+    transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+    white-space:nowrap;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--gold);color:#1c1200;}
+  .btn-primary:hover{background:var(--gold-soft);box-shadow:0 3px 10px rgba(169,130,47,.4);}
+  .btn-ghost{background:rgba(255,255,255,.12);color:#fff;}
+  .btn-ghost:hover{background:rgba(255,255,255,.22);}
+  .btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--line);}
+  .btn-outline:hover{border-color:var(--navy);}
+  .btn-danger{background:#fdeceb;color:var(--danger);}
+  .btn-danger:hover{background:#fbdcd9;}
+  .btn-sm{padding:6px 11px;font-size:12px;border-radius:7px;}
 
-  --r:14px; --r-sm:10px; --r-xs:7px;
-  --shadow:0 1px 2px rgba(15,27,42,.04), 0 6px 20px rgba(15,27,42,.05);
-  --sidebar-w:238px;
-}
-[data-theme="dark"]{
-  --brand:#2aa295;   --brand-600:#1f8479;  --brand-50:#10312e;
-  --ink:#e9eef3;     --muted:#9aabbb;      --faint:#6d7f8f;
-  --canvas:#0c141c;  --surface:#141f2a;    --raise:#1a2733;
-  --line:#243342;
-  --up:#3ec98b;      --up-bg:#11302a;
-  --down:#ff7b6b;    --down-bg:#331b1b;
-  --warn:#e0a44a;    --warn-bg:#33270f;
-  --blue:#7ba0f5;    --blue-bg:#16233d;
-  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
-}
+  .layout{
+    display:grid;
+    grid-template-columns:minmax(320px,420px) 1fr;
+    gap:20px;
+    padding:20px;
+    align-items:start;
+    max-width:1500px;
+    margin:0 auto;
+  }
+  @media (max-width:980px){
+    .layout{grid-template-columns:1fr;}
+  }
 
-*{ box-sizing:border-box; }
-html,body{ margin:0; padding:0; }
-body{
-  font-family:'IBM Plex Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;
-  background:var(--canvas); color:var(--ink);
-  font-variant-numeric:tabular-nums;
-  -webkit-tap-highlight-color:transparent;
-  transition:background .2s ease, color .2s ease;
-}
-h1,h2,h3,h4{ margin:0; font-weight:700; }
-button,input,select,textarea{ font-family:inherit; }
-:focus-visible{ outline:2.5px solid var(--brand); outline-offset:2px; border-radius:6px; }
-@media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }
+  /* ===== Form panel ===== */
+  .panel{
+    background:var(--panel);
+    border-radius:14px;
+    box-shadow:0 1px 3px rgba(15,58,92,.08), 0 8px 24px -12px rgba(15,58,92,.18);
+    border:1px solid #e6e2d6;
+    overflow:hidden;
+  }
+  .panel-head{
+    padding:16px 18px 4px;
+  }
+  .panel-head h2{margin:0 0 2px;font-size:14px;color:var(--navy);font-weight:800;}
+  .panel-head span{font-size:12px;color:var(--muted);}
 
-/* ================================================================
-   1) الهيكل: قائمة جانبية + شريط علوي + محتوى
-   ================================================================ */
-.app{ display:flex; min-height:100vh; }
+  .type-tabs{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+    padding:14px 18px;
+  }
+  .type-tab{
+    border:1.5px solid var(--line);
+    background:#fff;
+    border-radius:10px;
+    padding:10px 6px;
+    text-align:center;
+    cursor:pointer;
+    font-size:12.5px;
+    font-weight:700;
+    color:#556070;
+    transition:all .15s ease;
+    line-height:1.5;
+  }
+  .type-tab small{display:block;font-weight:500;font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .type-tab.active{
+    border-color:var(--navy);
+    background:linear-gradient(180deg,#eef4fa,#e4edf6);
+    color:var(--navy);
+    box-shadow:inset 0 0 0 1px var(--navy);
+  }
 
-.sidebar{
-  width:var(--sidebar-w); flex-shrink:0;
-  background:linear-gradient(170deg,var(--brand-600),#08403a 90%);
-  color:#fff; position:fixed; inset-inline-start:0; top:0; bottom:0;
-  overflow-y:auto; z-index:40; padding:20px 0 14px;
-  transition:transform .25s ease;
-}
-.brand{ padding:0 20px 18px; border-bottom:1px solid rgba(255,255,255,.14); margin-bottom:10px; }
-.brand .mark{ display:flex; align-items:center; gap:9px; font-size:19px; font-weight:700; letter-spacing:-.2px; }
-.brand .mark .dot{ width:9px; height:9px; border-radius:50%; background:#4fd1bd; box-shadow:0 0 0 4px rgba(79,209,189,.2); }
-.brand .sub{ font-size:11.5px; opacity:.7; margin-top:5px; }
+  .section{
+    padding:6px 18px 18px;
+    border-top:1px dashed #ece7d9;
+  }
+  .section:first-of-type{border-top:none;}
+  .section-title{
+    font-size:12px;font-weight:800;color:var(--navy);
+    margin:12px 0 10px;display:flex;align-items:center;gap:6px;
+  }
+  .section-title::before{
+    content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);
+  }
 
-.nav-link{
-  display:flex; align-items:center; gap:11px; padding:11px 20px;
-  font-size:14.5px; color:rgba(255,255,255,.82); cursor:pointer;
-  border-inline-start:3px solid transparent; user-select:none;
-  transition:background .15s ease;
-}
-.nav-link:hover{ background:rgba(255,255,255,.07); }
-.nav-link.active{ background:rgba(255,255,255,.13); border-inline-start-color:#4fd1bd; color:#fff; font-weight:600; }
-.nav-link .ic{ width:20px; text-align:center; font-size:16px; }
-.nav-foot{ margin-top:14px; padding:14px 20px 0; border-top:1px solid rgba(255,255,255,.12); font-size:11.5px; color:rgba(255,255,255,.55); line-height:1.7; }
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;font-size:12px;font-weight:600;color:#3d4a58;margin-bottom:5px;
+  }
+  .field .hint{font-size:10.5px;color:var(--muted);font-weight:400;margin-top:3px;}
+  input[type=text], input[type=date], input[type=number], select, textarea{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 11px;
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    background:#fff;
+    outline:none;
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  input:focus, select:focus, textarea:focus{
+    border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(15,58,92,.12);
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 
-.overlay{ display:none; position:fixed; inset:0; background:rgba(9,17,26,.5); z-index:30; }
-.overlay.show{ display:block; }
+  .seg{display:flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;}
+  .seg button{
+    flex:1;border:none;background:#fff;padding:8px 6px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    font-size:12.5px;font-weight:600;color:#5b6673;cursor:pointer;border-inline-start:1.5px solid var(--line);
+  }
+  .seg button:first-child{border-inline-start:none;}
+  .seg button.active{background:var(--navy);color:#fff;}
 
-.main{ flex:1; margin-inline-start:var(--sidebar-w); min-width:0; }
-.topbar{
-  background:var(--surface); border-bottom:1px solid var(--line);
-  padding:12px 22px; display:flex; align-items:center; justify-content:space-between;
-  gap:12px; position:sticky; top:0; z-index:20;
-}
-.topbar h2{ font-size:17px; }
-.topbar .sub{ font-size:12px; color:var(--muted); margin-top:2px; }
-.icon-square{
-  background:var(--raise); border:1px solid var(--line); color:var(--ink);
-  width:37px; height:37px; border-radius:var(--r-sm); cursor:pointer;
-  display:flex; align-items:center; justify-content:center; font-size:16px;
-}
-.icon-square:hover{ background:var(--brand-50); }
-.menu-btn{ display:none; }
-main{ padding:20px; max-width:1200px; margin:0 auto; }
-.page{ display:none; }
-.page.active{ display:block; animation:rise .22s ease; }
-@keyframes rise{ from{opacity:0; transform:translateY(7px);} to{opacity:1; transform:none;} }
+  .switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;}
+  .switch-row label{font-size:12.5px;font-weight:600;color:#3d4a58;}
+  .switch{
+    position:relative;width:40px;height:22px;border-radius:99px;background:#d9dee3;cursor:pointer;flex-shrink:0;transition:background .15s;
+  }
+  .switch.on{background:var(--navy);}
+  .switch::after{
+    content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#fff;
+    transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);
+  }
+  .switch.on::after{transform:translateX(-18px);}
 
-/* ================================================================
-   2) عناصر عامة
-   ================================================================ */
-.card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:18px; margin-bottom:16px; }
-.card-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
-.card-title{ font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px; }
-.card-title .hint{ font-weight:400; font-size:12px; color:var(--faint); }
+  /* worker table editor */
+  .workers-editor{border:1.5px solid var(--line);border-radius:10px;overflow:hidden;}
+  .worker-card{
+    padding:12px;border-bottom:1px solid #eee7d8;background:#fdfcf9;
+  }
+  .worker-card:last-child{border-bottom:none;}
+  .worker-card .wc-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+  }
+  .worker-card .wc-head span{font-size:12px;font-weight:800;color:var(--navy);}
+  .worker-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .worker-grid .full{grid-column:1/-1;}
+  .add-worker{
+    width:100%;padding:11px;background:#f3f6f9;border:1.5px dashed #b9c6d1;color:var(--navy);
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;border-radius:0;
+  }
+  .add-worker:hover{background:#e9eff5;}
+  .icon-btn{
+    border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:12px;font-weight:700;
+    padding:3px 6px;border-radius:6px;
+  }
+  .icon-btn:hover{background:#fdeceb;}
 
-.kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
-.kpi{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:15px 16px; }
-.kpi .lbl{ font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; margin-bottom:9px; }
-.kpi .val{ font-size:22px; font-weight:700; letter-spacing:-.4px; }
-.kpi .val .cur{ font-size:12.5px; font-weight:500; color:var(--muted); margin-inline-start:3px; }
-.kpi .foot{ margin-top:9px; font-size:11.5px; color:var(--faint); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.kpi.accent{ border-top:3px solid var(--brand); }
-.kpi.pl{ background:linear-gradient(180deg,var(--up-bg),var(--surface) 75%); border-color:transparent; }
-.kpi.pl.loss{ background:linear-gradient(180deg,var(--down-bg),var(--surface) 75%); }
-.kpi.pl .val{ color:var(--up); font-size:27px; }
-.kpi.pl.loss .val{ color:var(--down); }
-.kpi.wide{ grid-column:span 2; }
+  .footer-note{
+    padding:14px 18px;background:#f7f5ee;font-size:11.5px;color:var(--muted);line-height:1.9;border-top:1px solid #ece7d9;
+  }
 
-.chip{ display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:999px; font-size:11.5px; font-weight:600; background:var(--raise); color:var(--muted); }
-.chip.up{ background:var(--up-bg); color:var(--up); }
-.chip.down{ background:var(--down-bg); color:var(--down); }
-.chip.warn{ background:var(--warn-bg); color:var(--warn); }
-.chip.info{ background:var(--blue-bg); color:var(--blue); }
+  /* ===== Preview / document ===== */
+  .preview-wrap{position:sticky;top:88px;}
+  .preview-toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--panel);border:1px solid #e6e2d6;border-radius:12px 12px 0 0;
+    padding:10px 16px;flex-wrap:wrap;
+  }
+  .preview-toolbar .ptitle{font-size:12.5px;font-weight:800;color:var(--navy);}
+  .zoom-controls{display:flex;align-items:center;gap:6px;}
+  .zoom-controls button{
+    width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700;color:var(--navy);
+  }
+  .align-controls{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);}
+  .align-controls input[type=number]{width:64px;padding:5px 7px;font-size:12px;}
 
-.btn{
-  border:none; border-radius:var(--r-sm); padding:9px 16px; font-size:13.5px; font-weight:600;
-  cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
-  transition:transform .07s ease, background .15s ease;
-}
-.btn:active{ transform:scale(.97); }
-.btn-primary{ background:var(--brand); color:#fff; }
-.btn-primary:hover{ background:var(--brand-600); }
-.btn-outline{ background:var(--surface); color:var(--brand); border:1.5px solid var(--brand); }
-.btn-outline:hover{ background:var(--brand-50); }
-.btn-ghost{ background:var(--raise); color:var(--ink); border:1px solid var(--line); }
-.btn-ghost:hover{ background:var(--brand-50); }
-.btn-danger{ background:var(--down-bg); color:var(--down); }
-.btn-sm{ padding:6px 11px; font-size:12.5px; }
-.btn[disabled]{ opacity:.5; cursor:not-allowed; }
-.tools{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .page-scroll{
+    background:#dfe4e8;
+    border:1px solid #e6e2d6;border-top:none;
+    border-radius:0 0 12px 12px;
+    padding:26px;
+    display:flex;justify-content:center;
+    max-height:calc(100vh - 210px);
+    overflow:auto;
+  }
+  .page{
+    width:21cm;
+    min-height:29.7cm;
+    background:var(--paper);
+    box-shadow:0 4px 24px rgba(10,39,64,.28);
+    padding:2.1cm 2cm 2.2cm;
+    font-family:'Traditional Arabic','Simplified Arabic','Segoe UI',serif;
+    color:#111;
+    position:relative;
+    transform-origin:top center;
+    flex-shrink:0;
+  }
+  .letterhead-guide{
+    border:1.5px dashed #c3b7d8;
+    background:repeating-linear-gradient(135deg, rgba(120,90,170,.05), rgba(120,90,170,.05) 10px, rgba(120,90,170,.09) 10px, rgba(120,90,170,.09) 20px);
+    border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    color:#7a6a9a;font-size:12px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;font-weight:600;
+    margin-bottom:8px;
+  }
+  .doc-topline{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    font-size:12.5px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    margin-bottom:2px;
+  }
+  .doc-topline .ref-block{line-height:1.9;color:#1c1c1c;}
+  .doc-topline .ref-block b{font-weight:700;}
+  .doc-title-box{
+    text-align:center;margin:14px 0 18px;
+  }
+  .doc-title-box .to-line{
+    font-size:16.5px;font-weight:700;text-decoration:underline;text-underline-offset:5px;display:inline-block;
+  }
+  .greeting{font-size:15px;font-weight:700;margin:6px 0 14px;}
+  .body-text p{
+    font-size:14.5px;line-height:2.15;margin:0 0 10px;text-align:justify;
+  }
+  .body-text p b{font-weight:700;}
+  .body-text .center-strong{
+    text-align:center;font-weight:800;font-size:15px;margin:14px 0 12px;
+  }
+  .doc-table{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:13.5px;}
+  .doc-table th, .doc-table td{
+    border:1px solid #222;padding:7px 6px;text-align:center;vertical-align:middle;
+  }
+  .doc-table th{background:#e7e2d3;font-weight:700;font-family:'Segoe UI','Tahoma','Arial',sans-serif;font-size:12.5px;}
+  .doc-table td.name-cell{font-weight:700;text-align:center;}
+  .conditions{font-size:14px;line-height:2;margin:4px 0 14px;padding-inline-start:2px;}
+  .conditions .cond-item{margin-bottom:4px;}
+  .validity-note{font-weight:700;text-decoration:underline;font-size:14px;margin:6px 0 14px;}
+  .stamp-box{
+    display:inline-block;border:2px solid #111;padding:5px 22px;font-weight:800;font-size:13.5px;
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;margin:6px 0 20px;
+  }
+  .closing{font-size:14.5px;line-height:2;margin:16px 0 34px;}
+  .sign-block{
+    display:flex;justify-content:flex-end;text-align:center;margin-top:10px;
+  }
+  .sign-block .sig{max-width:230px;}
+  .sign-block .sig .name{font-weight:800;font-size:14.5px;margin-bottom:2px;}
+  .sign-block .sig .title{font-size:12.5px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;color:#222;}
+  .cc-block{
+    margin-top:40px;border-top:1px solid #999;padding-top:8px;font-size:10.5px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;color:#333;line-height:2;
+  }
+  .cc-block .cc-title{font-weight:700;margin-bottom:3px;}
+  .footer-web{
+    position:absolute;bottom:0.9cm;right:2cm;left:2cm;
+    display:flex;justify-content:space-between;font-size:9.5px;color:#555;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    border-top:1px solid #ccc;padding-top:5px;
+  }
 
-.field{ margin-bottom:14px; }
-.field label{ display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:6px; }
-input[type=text],input[type=date],input[type=month],input[type=number],select,textarea{
-  width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:var(--r-sm);
-  font-size:14px; background:var(--surface); color:var(--ink); outline:none; transition:border-color .15s ease;
-}
-input:focus,select:focus,textarea:focus{ border-color:var(--brand); }
-textarea{ resize:vertical; min-height:64px; }
-.inline-input{ width:auto; min-width:150px; padding:8px 11px; font-size:13.5px; }
-.form-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 14px; }
-.form-grid .full{ grid-column:1/-1; }
-.hint{ font-size:11.5px; color:var(--faint); margin-top:5px; }
-
-.preview{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;
-  background:var(--raise); border:1px dashed var(--line); border-radius:var(--r-sm); padding:14px; margin:4px 0 16px;
-}
-.preview .p-item .l{ font-size:11.5px; color:var(--muted); margin-bottom:4px; }
-.preview .p-item .v{ font-size:18px; font-weight:700; }
-.preview .p-item.res .v{ color:var(--up); }
-.preview .p-item.res.neg .v{ color:var(--down); }
-
-.alert{ border-radius:var(--r-sm); padding:11px 13px; font-size:13px; margin-bottom:14px; display:flex; gap:8px; align-items:flex-start; line-height:1.6; }
-.alert-warn{ background:var(--warn-bg); color:var(--warn); }
-.alert-err{ background:var(--down-bg); color:var(--down); }
-.alert-ok{ background:var(--up-bg); color:var(--up); }
-.alert-info{ background:var(--blue-bg); color:var(--blue); }
-
-table{ width:100%; border-collapse:collapse; font-size:13px; }
-thead th{
-  text-align:start; background:var(--raise); color:var(--muted); font-size:11.5px; font-weight:700;
-  padding:10px 11px; border-bottom:1px solid var(--line); white-space:nowrap; position:sticky; top:0;
-}
-tbody td{ padding:10px 11px; border-bottom:1px solid var(--line); white-space:nowrap; }
-tbody tr:hover{ background:var(--raise); }
-tfoot td{ padding:11px; font-weight:700; background:var(--raise); border-top:2px solid var(--line); white-space:nowrap; }
-.t-strong{ font-weight:700; }
-.t-up{ color:var(--up); font-weight:700; }
-.t-down{ color:var(--down); font-weight:700; }
-.t-mute{ color:var(--faint); }
-.scroll-x{ overflow-x:auto; border-radius:var(--r-sm); }
-.row-actions{ display:flex; gap:5px; }
-.ibtn{ background:var(--raise); border:1px solid var(--line); width:29px; height:29px; border-radius:var(--r-xs); cursor:pointer; font-size:13px; }
-.ibtn:hover{ background:var(--brand-50); }
-.ibtn.del:hover{ background:var(--down-bg); }
-
-.empty{ text-align:center; padding:40px 18px; color:var(--faint); font-size:13.5px; }
-.empty .ic{ font-size:34px; display:block; margin-bottom:8px; opacity:.7; }
-
-.segmented{ display:inline-flex; background:var(--raise); border:1px solid var(--line); border-radius:999px; padding:3px; gap:2px; flex-wrap:wrap; }
-.seg{ padding:7px 15px; border-radius:999px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; user-select:none; }
-.seg.active{ background:var(--surface); color:var(--brand); box-shadow:var(--shadow); }
-
-.switch{ display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; position:relative; }
-.switch input{ position:absolute; opacity:0; width:0; height:0; }
-.track{ display:inline-block; width:42px; height:24px; border-radius:999px; background:var(--line); position:relative; transition:background .18s ease; flex-shrink:0; }
-.track::after{ content:""; position:absolute; top:3px; inset-inline-start:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform .18s ease; box-shadow:0 1px 3px rgba(0,0,0,.25); }
-.switch input:checked + .track{ background:var(--brand); }
-.switch input:checked + .track::after{ transform:translateX(-18px); }
-[dir="ltr"] .switch input:checked + .track::after{ transform:translateX(18px); }
-
-.progress{ height:9px; border-radius:999px; background:var(--line); overflow:hidden; }
-.progress > span{ display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,var(--brand),#37b3a2); transition:width .5s ease; }
-.progress.over > span{ background:linear-gradient(90deg,var(--up),#4fd1a0); }
-
-/* ================================================================
-   3) الرسوم البيانية
-   ================================================================ */
-/* مخطط الربح/الخسارة حول خط الصفر */
-.pl-chart{ display:flex; gap:5px; overflow-x:auto; padding:8px 2px 0; }
-.pl-col{ flex:1 0 34px; display:flex; flex-direction:column; align-items:center; cursor:pointer; position:relative; }
-.pl-up,.pl-down{ width:100%; display:flex; justify-content:center; }
-.pl-up{ align-items:flex-end; }
-.pl-down{ align-items:flex-start; }
-.pl-bar{ width:76%; max-width:30px; border-radius:5px 5px 0 0; background:linear-gradient(180deg,#2fa47f,var(--up)); transition:height .35s ease; }
-.pl-bar.neg{ border-radius:0 0 5px 5px; background:linear-gradient(0deg,#d9584a,var(--down)); }
-.pl-bar.nil{ background:var(--line); }
-.pl-zero{ width:100%; height:1.5px; background:var(--line); }
-.pl-lbl{ font-size:10px; color:var(--faint); margin-top:6px; white-space:nowrap; }
-.pl-col:hover .pl-bar{ filter:brightness(1.12); }
-.pl-tip{
-  position:absolute; bottom:100%; inset-inline-start:50%; transform:translateX(50%);
-  background:var(--ink); color:var(--canvas); font-size:11px; padding:5px 9px; border-radius:6px;
-  white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .15s ease; z-index:5; font-weight:600;
-}
-.pl-col:hover .pl-tip{ opacity:1; }
-
-/* أعمدة عادية */
-.bars{ display:flex; align-items:flex-end; gap:6px; height:150px; overflow-x:auto; padding-top:6px; }
-.bar-col{ flex:1 0 30px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:5px; }
-.bar{ width:74%; max-width:32px; background:linear-gradient(180deg,#2b9d90,var(--brand)); border-radius:5px 5px 0 0; min-height:3px; transition:height .35s ease; }
-.bar.alt{ background:linear-gradient(180deg,#4f7ee0,var(--blue)); }
-.bar.nil{ background:var(--line); }
-.bar-lbl{ font-size:10px; color:var(--faint); white-space:nowrap; }
-.bar-val{ font-size:10px; font-weight:700; color:var(--muted); }
-
-/* شلال الأرباح */
-.wf-row{ display:grid; grid-template-columns:130px 1fr 120px; align-items:center; gap:10px; padding:7px 0; font-size:13px; }
-.wf-row .wf-l{ color:var(--muted); }
-.wf-track{ background:var(--raise); border-radius:5px; height:15px; overflow:hidden; }
-.wf-fill{ height:100%; border-radius:5px; transition:width .5s ease; }
-.wf-fill.sales{ background:var(--brand); }
-.wf-fill.cut{ background:var(--warn); }
-.wf-fill.cost{ background:#8a6fd0; }
-.wf-fill.exp{ background:var(--blue); }
-.wf-fill.profit{ background:var(--up); }
-.wf-fill.loss{ background:var(--down); }
-.wf-row .wf-v{ text-align:end; font-weight:700; }
-.wf-row.total{ border-top:1.5px dashed var(--line); margin-top:6px; padding-top:12px; }
-
-/* التحليل الذكي */
-.insights{ display:grid; gap:9px; }
-.insight{ display:flex; gap:10px; align-items:flex-start; background:var(--raise); border-radius:var(--r-sm); padding:11px 13px; font-size:13px; line-height:1.65; border-inline-start:3px solid var(--line); }
-.insight .ic{ font-size:15px; }
-.insight.good{ border-inline-start-color:var(--up); }
-.insight.bad{ border-inline-start-color:var(--down); }
-.insight.warn{ border-inline-start-color:var(--warn); }
-.insight.info{ border-inline-start-color:var(--blue); }
-
-/* المقارنة جنبًا إلى جنب */
-.vs-grid{ display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:start; }
-.vs-side{ background:var(--raise); border-radius:var(--r-sm); padding:14px; }
-.vs-side .t{ font-size:12px; color:var(--muted); margin-bottom:4px; }
-.vs-side .d{ font-size:15px; font-weight:700; }
-.vs-mid{ align-self:center; font-size:13px; font-weight:700; color:var(--faint); padding:0 4px; }
-.vs-table td:first-child{ color:var(--muted); }
-
-/* نافذة منبثقة + إشعار */
-.modal-bg{ display:none; position:fixed; inset:0; background:rgba(9,17,26,.5); z-index:100; align-items:center; justify-content:center; padding:16px; }
-.modal-bg.show{ display:flex; }
-.modal{ background:var(--surface); border-radius:var(--r); max-width:440px; width:100%; padding:20px; box-shadow:0 24px 60px rgba(0,0,0,.3); animation:pop .16s ease; }
-@keyframes pop{ from{opacity:0; transform:scale(.96);} to{opacity:1; transform:none;} }
-.modal h3{ font-size:16px; margin-bottom:10px; }
-.modal .body{ font-size:13.5px; color:var(--muted); line-height:1.75; margin-bottom:18px; }
-.modal .foot{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
-
-#toast{ position:fixed; bottom:20px; inset-inline-start:20px; z-index:200; display:flex; flex-direction:column; gap:8px; }
-.toast{
-  background:var(--ink); color:var(--canvas); padding:11px 16px; border-radius:var(--r-sm);
-  font-size:13px; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,.25); animation:slide .2s ease;
-  display:flex; align-items:center; gap:8px;
-}
-.toast.ok{ background:var(--up); color:#fff; }
-.toast.err{ background:var(--down); color:#fff; }
-@keyframes slide{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
-
-/* ================================================================
-   4) الطباعة والاستجابة
-   ================================================================ */
-.print-head{ display:none; }
-@media print{
-  .sidebar,.topbar,.no-print,.tools,.segmented{ display:none !important; }
-  .main{ margin:0 !important; }
-  body{ background:#fff; }
-  .card{ box-shadow:none; border:1px solid #ccc; break-inside:avoid; }
-  .print-head{ display:block; margin-bottom:14px; border-bottom:2px solid #333; padding-bottom:8px; }
-}
-@media (max-width:980px){
-  .sidebar{ transform:translateX(100%); }
-  .sidebar.open{ transform:none; }
-  .main{ margin-inline-start:0; }
-  .menu-btn{ display:flex; }
-  .form-grid{ grid-template-columns:1fr 1fr; }
-  .vs-grid{ grid-template-columns:1fr; }
-  .vs-mid{ text-align:center; }
-}
-@media (max-width:560px){
-  main{ padding:13px; }
-  .topbar{ padding:11px 13px; }
-  .kpis{ grid-template-columns:1fr 1fr; gap:9px; }
-  .kpi .val{ font-size:18px; }
-  .kpi.pl .val{ font-size:22px; }
-  .kpi.wide{ grid-column:span 2; }
-  .form-grid{ grid-template-columns:1fr; }
-  .wf-row{ grid-template-columns:96px 1fr; grid-template-areas:"l v" "b b"; }
-  .wf-row .wf-l{ grid-area:l; } .wf-row .wf-v{ grid-area:v; } .wf-track{ grid-area:b; }
-}
+  /* ===== Print ===== */
+  @media print{
+    @page{ size:A4; margin:0; }
+    body *{ visibility:hidden; }
+    .page, .page *{ visibility:visible; }
+    .page{
+      position:absolute; top:0; right:0; margin:0; box-shadow:none;
+      width:21cm; min-height:29.7cm; transform:none !important;
+    }
+    .letterhead-guide{ display:none !important; }
+    .no-print{ display:none !important; }
+  }
 </style>
 </head>
 <body>
 
-<div class="app">
-  <div class="overlay" id="overlay"></div>
-
-  <!-- ==================== القائمة الجانبية ==================== -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="mark"><span class="dot"></span> دفتر المبيعات</div>
-      <div class="sub">جرد يومي · أرباح وخسائر</div>
+<div class="topbar">
+  <div class="brand">
+    <div class="emblem">وع</div>
+    <div>
+      <h1>نظام إعداد رسائل إدارة الاستخدام</h1>
+      <p>تصريح عمل · تجديد إذن عمل · تعاقد من الداخل — طباعة مباشرة على الورق الرسمي</p>
     </div>
-    <nav id="nav">
-      <div class="nav-link active" data-page="home"><span class="ic">◧</span> اللوحة الرئيسية</div>
-      <div class="nav-link" data-page="add"><span class="ic">＋</span> إدخال يوم جديد</div>
-      <div class="nav-link" data-page="records"><span class="ic">☰</span> السجلات</div>
-      <div class="nav-link" data-page="week"><span class="ic">▤</span> الأسبوع</div>
-      <div class="nav-link" data-page="month"><span class="ic">▦</span> الشهر</div>
-      <div class="nav-link" data-page="compare"><span class="ic">⇄</span> المقارنة</div>
-      <div class="nav-link" data-page="settings"><span class="ic">⚙</span> الإعدادات</div>
-    </nav>
-    <div class="nav-foot">
-      بياناتك محفوظة داخل هذا الجهاز فقط.<br>
-      خذ نسخة احتياطية من الإعدادات بين حين وآخر.
-    </div>
-  </aside>
-
-  <div class="main">
-    <header class="topbar">
-      <div style="display:flex; align-items:center; gap:11px;">
-        <button class="icon-square menu-btn" id="menuBtn" aria-label="القائمة">☰</button>
-        <div>
-          <h2 id="pageTitle">اللوحة الرئيسية</h2>
-          <div class="sub" id="pageSub"></div>
-        </div>
-      </div>
-      <div style="display:flex; align-items:center; gap:9px;">
-        <span class="chip" id="todayChip"></span>
-        <button class="icon-square" id="themeBtn" title="تبديل المظهر">◐</button>
-      </div>
-    </header>
-
-    <main>
-
-      <!-- ==================== اللوحة الرئيسية ==================== -->
-      <section class="page active" id="page-home">
-        <div class="card">
-          <div class="card-head" style="margin-bottom:0;">
-            <div class="card-title">يوم العمل
-              <span class="hint" id="homeDayName"></span>
-            </div>
-            <div class="tools">
-              <input type="date" id="homeDate" class="inline-input">
-              <button class="btn btn-ghost btn-sm" id="homePrev">◀ السابق</button>
-              <button class="btn btn-ghost btn-sm" id="homeToday">اليوم</button>
-              <button class="btn btn-ghost btn-sm" id="homeNext">التالي ▶</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="kpis" id="homeKpis"></div>
-
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">الربح والخسارة
-              <span class="hint">آخر 14 يومًا — الأعمدة تحت الخط خسارة</span>
-            </div>
-            <div class="segmented" id="homeChartMode">
-              <div class="seg active" data-m="profit">الربح</div>
-              <div class="seg" data-m="sales">المبيعات</div>
-            </div>
-          </div>
-          <div class="pl-chart" id="homeChart"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">هدف الشهر</div>
-            <span class="chip" id="goalChip"></span>
-          </div>
-          <div id="goalBox"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:13px;">قراءة سريعة في أرقامك</div>
-          <div class="insights" id="insights"></div>
-        </div>
-      </section>
-
-      <!-- ==================== إدخال يوم ==================== -->
-      <section class="page" id="page-add">
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title" id="addTitle">إدخال يوم جديد</div>
-            <button class="btn btn-ghost btn-sm" id="cancelEdit" style="display:none;">إلغاء التعديل</button>
-          </div>
-          <div id="addAlerts"></div>
-
-          <form id="addForm">
-            <div class="form-grid">
-              <div class="field">
-                <label>التاريخ</label>
-                <input type="date" id="fDate" required>
-              </div>
-              <div class="field">
-                <label>مبيعات نقدية</label>
-                <input type="number" id="fCash" min="0" step="0.01" placeholder="0" inputmode="decimal">
-              </div>
-              <div class="field">
-                <label>مبيعات بالبطاقة</label>
-                <input type="number" id="fCard" min="0" step="0.01" placeholder="0" inputmode="decimal">
-              </div>
-              <div class="field">
-                <label>الخصومات والمرتجعات</label>
-                <input type="number" id="fDisc" min="0" step="0.01" placeholder="0" inputmode="decimal">
-              </div>
-              <div class="field">
-                <label>تكلفة البضاعة المباعة</label>
-                <input type="number" id="fCogs" min="0" step="0.01" placeholder="0" inputmode="decimal">
-                <div class="hint">ثمن شراء ما بِيع اليوم</div>
-              </div>
-              <div class="field">
-                <label>مصاريف التشغيل</label>
-                <input type="number" id="fExp" min="0" step="0.01" placeholder="0" inputmode="decimal">
-                <div class="hint">إيجار، رواتب، كهرباء، نقل…</div>
-              </div>
-              <div class="field full">
-                <label>ملاحظة (اختياري)</label>
-                <textarea id="fNotes" placeholder="مثال: يوم عطلة، عرض تخفيضات، عطل في ماكينة الدفع…"></textarea>
-              </div>
-            </div>
-
-            <div class="preview" id="preview"></div>
-
-            <div class="tools">
-              <button type="submit" class="btn btn-primary" id="saveBtn">حفظ اليوم</button>
-              <button type="button" class="btn btn-ghost" id="clearBtn">تفريغ الحقول</button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <!-- ==================== السجلات ==================== -->
-      <section class="page" id="page-records">
-        <div class="print-head">
-          <h2>سجل المبيعات والأرباح</h2>
-          <div class="sub" id="printMeta"></div>
-        </div>
-        <div class="card">
-          <div class="card-head">
-            <div class="tools">
-              <input type="date" id="recFrom" class="inline-input" title="من تاريخ">
-              <span class="t-mute">إلى</span>
-              <input type="date" id="recTo" class="inline-input" title="إلى تاريخ">
-              <button class="btn btn-ghost btn-sm" id="recAll">كل الفترات</button>
-            </div>
-            <div class="tools no-print">
-              <button class="btn btn-outline btn-sm" id="csvBtn">تصدير CSV</button>
-              <button class="btn btn-outline btn-sm" id="printBtn">طباعة</button>
-            </div>
-          </div>
-          <div class="kpis" id="recKpis" style="margin-bottom:14px;"></div>
-          <div class="scroll-x">
-            <table>
-              <thead>
-                <tr>
-                  <th>التاريخ</th><th>اليوم</th><th>المبيعات</th><th>نقدي</th><th>بطاقة</th>
-                  <th>خصومات</th><th>التكلفة</th><th>مصاريف</th><th>الربح</th><th>الهامش</th>
-                  <th class="no-print">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody id="recBody"></tbody>
-              <tfoot id="recFoot"></tfoot>
-            </table>
-          </div>
-          <div id="recEmpty"></div>
-        </div>
-      </section>
-
-      <!-- ==================== الأسبوع ==================== -->
-      <section class="page" id="page-week">
-        <div class="card">
-          <div class="card-head" style="margin-bottom:0;">
-            <div class="card-title">الأسبوع <span class="hint" id="weekRange"></span></div>
-            <div class="tools">
-              <button class="btn btn-ghost btn-sm" id="weekPrev">◀ السابق</button>
-              <input type="date" id="weekDate" class="inline-input">
-              <button class="btn btn-ghost btn-sm" id="weekNext">التالي ▶</button>
-            </div>
-          </div>
-        </div>
-        <div class="kpis" id="weekKpis"></div>
-        <div class="card">
-          <div class="card-title" style="margin-bottom:6px;">ربح كل يوم في الأسبوع</div>
-          <div class="pl-chart" id="weekChart"></div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="margin-bottom:12px;">تفصيل الأيام</div>
-          <div class="scroll-x">
-            <table>
-              <thead><tr><th>التاريخ</th><th>اليوم</th><th>المبيعات</th><th>الخصومات</th><th>التكلفة</th><th>المصاريف</th><th>الربح</th><th>الهامش</th></tr></thead>
-              <tbody id="weekBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== الشهر ==================== -->
-      <section class="page" id="page-month">
-        <div class="card">
-          <div class="card-head" style="margin-bottom:0;">
-            <div class="card-title">الشهر <span class="hint" id="monthName"></span></div>
-            <div class="tools">
-              <input type="month" id="monthPick" class="inline-input">
-              <button class="btn btn-ghost btn-sm" id="monthPrint">طباعة التقرير</button>
-            </div>
-          </div>
-        </div>
-        <div class="kpis" id="monthKpis"></div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:10px;">من المبيعات إلى الربح</div>
-          <div id="waterfall"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">أيام الشهر <span class="hint">اضغط أي عمود لفتح اليوم</span></div>
-            <div class="segmented" id="monthChartMode">
-              <div class="seg active" data-m="profit">الربح</div>
-              <div class="seg" data-m="sales">المبيعات</div>
-            </div>
-          </div>
-          <div class="pl-chart" id="monthChart"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:12px;">مقارنة بالشهر السابق</div>
-          <div class="scroll-x"><table class="vs-table"><tbody id="monthVs"></tbody></table></div>
-        </div>
-      </section>
-
-      <!-- ==================== المقارنة ==================== -->
-      <section class="page" id="page-compare">
-        <div class="card">
-          <div class="segmented" id="cmpTabs" style="margin-bottom:16px;">
-            <div class="seg active" data-t="days">يوم مقابل يوم</div>
-            <div class="seg" data-t="periods">فترة مقابل فترة</div>
-            <div class="seg" data-t="weekdays">أيام الأسبوع</div>
-          </div>
-          <div id="cmpControls"></div>
-          <div id="cmpResult" style="margin-top:16px;"></div>
-        </div>
-      </section>
-
-      <!-- ==================== الإعدادات ==================== -->
-      <section class="page" id="page-settings">
-        <div class="card">
-          <div class="card-title" style="margin-bottom:14px;">إعدادات عامة</div>
-          <div class="form-grid">
-            <div class="field">
-              <label>رمز العملة</label>
-              <input type="text" id="setCurrency" maxlength="8" placeholder="د.ل">
-            </div>
-            <div class="field">
-              <label>بداية الأسبوع</label>
-              <select id="setWeekStart">
-                <option value="0">الأحد</option><option value="1">الاثنين</option>
-                <option value="2">الثلاثاء</option><option value="3">الأربعاء</option>
-                <option value="4">الخميس</option><option value="5">الجمعة</option>
-                <option value="6">السبت</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>هدف الربح الشهري</label>
-              <input type="number" id="setGoal" min="0" step="1" placeholder="0" inputmode="decimal">
-            </div>
-            <div class="field full">
-              <label class="switch">
-                <input type="checkbox" id="setMulti"><span class="track"></span>
-                <span style="font-size:13.5px; font-weight:600; color:var(--ink);">السماح بأكثر من سجل في نفس اليوم (ورديات)</span>
-              </label>
-            </div>
-          </div>
-          <button class="btn btn-primary" id="saveSettings">حفظ الإعدادات</button>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:8px;">النسخ الاحتياطي</div>
-          <p class="hint" style="margin-bottom:14px;">كل شيء محفوظ في متصفح هذا الجهاز. صدّر نسخة قبل تفريغ ذاكرة المتصفح أو الانتقال لجهاز آخر.</p>
-          <div class="tools">
-            <button class="btn btn-outline" id="exportBtn">تصدير نسخة (JSON)</button>
-            <label class="btn btn-outline" for="importFile" style="cursor:pointer;">استيراد نسخة</label>
-            <input type="file" id="importFile" accept="application/json" style="display:none;">
-            <button class="btn btn-ghost" id="demoBtn">تعبئة بيانات تجريبية</button>
-            <button class="btn btn-danger" id="resetBtn">حذف كل البيانات</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:10px;">كيف تُحسب الأرقام</div>
-          <div class="scroll-x">
-            <table>
-              <tbody>
-                <tr><td class="t-mute">إجمالي المبيعات</td><td class="t-strong">نقدي + بطاقة</td></tr>
-                <tr><td class="t-mute">صافي المبيعات</td><td class="t-strong">الإجمالي − الخصومات</td></tr>
-                <tr><td class="t-mute">مجمل الربح</td><td class="t-strong">صافي المبيعات − تكلفة البضاعة</td></tr>
-                <tr><td class="t-mute">صافي الربح</td><td class="t-strong">مجمل الربح − مصاريف التشغيل</td></tr>
-                <tr><td class="t-mute">هامش الربح</td><td class="t-strong">صافي الربح ÷ صافي المبيعات × 100</td></tr>
-                <tr><td class="t-mute">نقطة التعادل اليومية</td><td class="t-strong">متوسط المصاريف ÷ نسبة مجمل الربح</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-    </main>
+  </div>
+  <div class="top-actions no-print">
+    <button class="btn btn-ghost" id="btnReset">✕ رسالة جديدة</button>
+    <button class="btn btn-primary" id="btnPrint">🖶 طباعة الرسالة</button>
   </div>
 </div>
 
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <h3 id="modalTitle"></h3>
-    <div class="body" id="modalBody"></div>
-    <div class="foot" id="modalFoot"></div>
+<div class="layout">
+  <!-- ================= FORM PANEL ================= -->
+  <div class="panel no-print">
+    <div class="panel-head">
+      <h2>بيانات المعاملة</h2>
+      <span>اختر نوع المعاملة وأدخل البيانات، وسيتولى النظام تنسيق الرسالة تلقائياً.</span>
+    </div>
+
+    <div class="type-tabs">
+      <div class="type-tab" data-type="permit">تصريح عمل<small>إصدار جديد</small></div>
+      <div class="type-tab" data-type="renewal">تجديد إذن عمل<small>تجديد قائم</small></div>
+      <div class="type-tab" data-type="internal">تعاقد من الداخل<small>فرد / شركة</small></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">بيانات الكتاب</div>
+      <div class="row2">
+        <div class="field">
+          <label>تاريخ الكتاب</label>
+          <input type="date" id="f_docDate">
+        </div>
+        <div class="field">
+          <label>الرقم الإشاري</label>
+          <input type="text" id="f_refNo" placeholder="مثال: 1086">
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- PERMIT fields ---- -->
+    <div class="section type-section" data-type="permit">
+      <div class="section-title">المستفيد (صاحب العمل)</div>
+      <div class="row2">
+        <div class="field">
+          <label>صفة المستفيد</label>
+          <select id="p_sponsorTitle">
+            <option value="السيد">السيد (فرد)</option>
+            <option value="السيدة">السيدة (فرد)</option>
+            <option value="شركة">شركة / منشأة</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>اسم المستفيد</label>
+          <input type="text" id="p_sponsorName" placeholder="اسم الفرد أو الشركة">
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- RENEWAL fields ---- -->
+    <div class="section type-section" data-type="renewal">
+      <div class="section-title">مقدّم الطلب</div>
+      <div class="row2">
+        <div class="field">
+          <label>صفة مقدّم الطلب</label>
+          <select id="r_applicantTitle">
+            <option value="السيد">السيد</option>
+            <option value="السيدة">السيدة</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>اسم مقدّم الطلب</label>
+          <input type="text" id="r_applicantName">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>الرقم الوطني</label>
+          <input type="text" id="r_nationalId">
+        </div>
+        <div class="field">
+          <label>رقم قيد العائلة</label>
+          <input type="text" id="r_familyNo">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>تاريخ ورود الطلب</label>
+          <input type="date" id="r_receivedDate">
+        </div>
+        <div class="field">
+          <label>تاريخ بدء التجديد</label>
+          <input type="date" id="r_startDate">
+        </div>
+      </div>
+      <div class="switch-row">
+        <label>جنس العامل(ة) — لضبط صيغة الجملة</label>
+        <div class="seg" style="width:140px;">
+          <button type="button" data-genderfor="r" data-g="f" class="active">أنثى</button>
+          <button type="button" data-genderfor="r" data-g="m">ذكر</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- INTERNAL fields ---- -->
+    <div class="section type-section" data-type="internal">
+      <div class="section-title">نوع الكفيل</div>
+      <div class="seg" style="margin-bottom:12px;">
+        <button type="button" id="i_sp_individual" class="active">فرد</button>
+        <button type="button" id="i_sp_company">شركة / منشأة</button>
+      </div>
+
+      <div id="i_individual_fields">
+        <div class="row2">
+          <div class="field">
+            <label>صفة مقدّم الطلب</label>
+            <select id="i_applicantTitle">
+              <option value="السيد">السيد</option>
+              <option value="السيدة">السيدة</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>اسم مقدّم الطلب</label>
+            <input type="text" id="i_applicantName">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>رقم قيد العائلة</label>
+            <input type="text" id="i_familyNo">
+          </div>
+          <div class="field">
+            <label>رقم الوارد</label>
+            <input type="text" id="i_receivedNo">
+          </div>
+        </div>
+      </div>
+
+      <div id="i_company_fields" style="display:none;">
+        <div class="field">
+          <label>اسم الشركة / المنشأة</label>
+          <input type="text" id="i_companyName">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>رقم كتاب الشركة الإشاري</label>
+            <input type="text" id="i_companyRefNo">
+          </div>
+          <div class="field">
+            <label>تاريخ كتاب الشركة</label>
+            <input type="date" id="i_companyRefDate">
+          </div>
+        </div>
+        <div class="switch-row">
+          <label>يوجد استثناء من شرط الدخول (مهمة)</label>
+          <div class="switch" id="i_exemptSwitch"></div>
+        </div>
+        <div id="i_exempt_fields" style="display:none;">
+          <div class="row2">
+            <div class="field">
+              <label>رقم كتاب وكيل الوزارة</label>
+              <input type="text" id="i_underRefNo">
+            </div>
+            <div class="field">
+              <label>تاريخ كتاب وكيل الوزارة</label>
+              <input type="date" id="i_underRefDate">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>تاريخ ورود الطلب</label>
+          <input type="date" id="i_receivedDate">
+        </div>
+        <div class="field">
+          <label>تاريخ بدء العمل</label>
+          <input type="date" id="i_startDate">
+        </div>
+      </div>
+      <div class="switch-row" id="i_genderRow">
+        <label>جنس العامل(ة) — لضبط صيغة الجملة</label>
+        <div class="seg" style="width:140px;">
+          <button type="button" data-genderfor="i" data-g="f" class="active">أنثى</button>
+          <button type="button" data-genderfor="i" data-g="m">ذكر</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- Workers ---- -->
+    <div class="section">
+      <div class="section-title">بيانات العامل / العمال</div>
+      <div class="workers-editor" id="workersEditor"></div>
+      <button type="button" class="add-worker" id="btnAddWorker">+ إضافة عامل</button>
+    </div>
+
+    <!-- ---- Signature & extras ---- -->
+    <div class="section">
+      <div class="section-title">التوقيع وخيارات إضافية</div>
+      <div class="row2">
+        <div class="field">
+          <label>اسم الموقّع</label>
+          <input type="text" id="f_signerName" value="أ. يوسف الطاهر المهدي الشائبي">
+        </div>
+        <div class="field">
+          <label>صفة الموقّع</label>
+          <input type="text" id="f_signerTitle" value="مدير إدارة الاستخدام / المكلف">
+        </div>
+      </div>
+      <div class="switch-row">
+        <label>إظهار عبارة "لا يُعتد إلا بالأصل"</label>
+        <div class="switch on" id="sw_stamp"></div>
+      </div>
+      <div class="switch-row">
+        <label>إظهار قائمة التوزيع (صورة للسادة)</label>
+        <div class="switch on" id="sw_cc"></div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      💡 تُطبع الرسالة مباشرة على ورقة الوزارة الرسمية ذات الترويسة المطبوعة مسبقاً. استخدم شريط "محاذاة الترويسة" في لوحة المعاينة لضبط المساحة العلوية الفارغة بما يطابق الورقة، ثم اضغط "طباعة الرسالة".
+    </div>
+  </div>
+
+  <!-- ================= PREVIEW ================= -->
+  <div class="preview-col">
+    <div class="preview-wrap">
+      <div class="preview-toolbar no-print">
+        <span class="ptitle">معاينة الرسالة</span>
+        <div class="align-controls">
+          <span>محاذاة الترويسة (سم)</span>
+          <input type="number" id="ctrlLetterheadGap" min="0" max="12" step="0.1" value="4.2">
+          <label style="display:flex;align-items:center;gap:5px;">
+            <input type="checkbox" id="ctrlShowGuide" checked style="width:auto;"> إظهار الدليل
+          </label>
+        </div>
+        <div class="zoom-controls">
+          <button id="zoomOut">−</button>
+          <span id="zoomLabel" style="font-size:12px;min-width:38px;text-align:center;display:inline-block;">65%</span>
+          <button id="zoomIn">+</button>
+        </div>
+      </div>
+      <div class="page-scroll">
+        <div class="page" id="page" style="transform:scale(.65);">
+          <!-- generated content injected here -->
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-<div id="toast"></div>
 
 <script>
-/* ================================================================
-   دفتر المبيعات — منطق التطبيق
-   البيانات كلها في localStorage داخل جهاز المستخدم
-   ================================================================ */
-
-/* ---------------- 1) التخزين والحالة ---------------- */
-const REC_KEY = "salesRecords_v2";
-const SET_KEY = "salesSettings_v2";
-const OLD_REC = "salesRecords";        // ترحيل النسخة السابقة
-const OLD_SET = "salesSettings";
-
-const defaultSettings = {
-  currency: "د.ل", weekStartDay: 6, allowMultiplePerDay: false,
-  monthlyGoal: 0, theme: "light"
+/* ================= STATE ================= */
+const state = {
+  type: 'permit',
+  docDate: todayISO(),
+  refNo: '',
+  // permit
+  p_sponsorTitle: 'السيد',
+  p_sponsorName: '',
+  // renewal
+  r_applicantTitle: 'السيد',
+  r_applicantName: '',
+  r_nationalId: '',
+  r_familyNo: '',
+  r_receivedDate: '',
+  r_startDate: '',
+  r_gender: 'f',
+  // internal
+  i_sponsorType: 'individual',
+  i_applicantTitle: 'السيد',
+  i_applicantName: '',
+  i_familyNo: '',
+  i_receivedNo: '',
+  i_companyName: '',
+  i_companyRefNo: '',
+  i_companyRefDate: '',
+  i_exempt: false,
+  i_underRefNo: '',
+  i_underRefDate: '',
+  i_receivedDate: '',
+  i_startDate: '',
+  i_gender: 'f',
+  // signature
+  signerName: 'أ. يوسف الطاهر المهدي الشائبي',
+  signerTitle: 'مدير إدارة الاستخدام / المكلف',
+  showStamp: true,
+  showCC: true,
+  workers: [ freshWorker() ]
 };
 
-let records  = [];
-let settings = { ...defaultSettings };
-let editingId = null;
-let homeMode = "profit", monthMode = "profit", cmpTab = "days";
-let pendingAction = null;
-
-function loadAll(){
-  try{
-    const raw = localStorage.getItem(REC_KEY);
-    if(raw){
-      records = JSON.parse(raw);
-    } else {
-      const legacy = localStorage.getItem(OLD_REC);          // ترحيل تلقائي
-      records = legacy ? JSON.parse(legacy) : [];
-      if(records.length) saveRecords();
-    }
-    const s = localStorage.getItem(SET_KEY) || localStorage.getItem(OLD_SET);
-    settings = s ? { ...defaultSettings, ...JSON.parse(s) } : { ...defaultSettings };
-  }catch(e){ records = []; settings = { ...defaultSettings }; }
-  records = records.map(normalize);
+function freshWorker(){
+  return { name:'', nationality:'', birth:'', passport:'', profession:'', permitNo:'', issueDate:'' };
 }
-function normalize(r){
-  const cash = num(r.cash), card = num(r.card), discounts = num(r.discounts);
-  const cogs = num(r.cogs), expenses = num(r.expenses);
-  const total = cash + card, net = total - discounts;
-  return { ...r, cash, card, discounts, cogs, expenses, total, net,
-           gross: net - cogs, profit: net - cogs - expenses };
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '..........';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
 }
-function saveRecords(){ localStorage.setItem(REC_KEY, JSON.stringify(records)); }
-function saveSettingsToDisk(){ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }
-function uid(){ return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-function num(v){ const n = parseFloat(v); return isFinite(n) ? n : 0; }
-
-/* ---------------- 2) التاريخ والأرقام ---------------- */
-const WEEKDAYS = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
-const MONTHS   = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-
-function toStr(d){ const o = d.getTimezoneOffset(); return new Date(d.getTime() - o*60000).toISOString().slice(0,10); }
-function today(){ return toStr(new Date()); }
-function thisMonth(){ return today().slice(0,7); }
-function addDays(s, n){ const d = new Date(s + "T00:00:00"); d.setDate(d.getDate() + n); return toStr(d); }
-function dayName(s){ return WEEKDAYS[new Date(s + "T00:00:00").getDay()]; }
-function dayIndex(s){ return new Date(s + "T00:00:00").getDay(); }
-function shortDate(s){ const d = new Date(s + "T00:00:00"); return d.getDate() + "/" + (d.getMonth()+1); }
-function monthLabel(m){ const [y,mm] = m.split("-").map(Number); return MONTHS[mm-1] + " " + y; }
-function addMonths(m, n){ const [y,mm] = m.split("-").map(Number); const d = new Date(y, mm-1+n, 1);
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0"); }
-function monthRange(m){ const [y,mm] = m.split("-").map(Number);
-  return { start: toStr(new Date(y,mm-1,1)), end: toStr(new Date(y,mm,0)), days: new Date(y,mm,0).getDate() }; }
-function weekRange(s, startDay){
-  const d = new Date(s + "T00:00:00");
-  let diff = d.getDay() - Number(startDay); if(diff < 0) diff += 7;
-  const st = new Date(d); st.setDate(d.getDate() - diff);
-  const en = new Date(st); en.setDate(st.getDate() + 6);
-  return { start: toStr(st), end: toStr(en) };
+function esc(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-function fmt(n){ n = num(n); const a = Math.abs(n);
-  return (n<0 ? "−" : "") + a.toLocaleString("en-US",{ maximumFractionDigits: a < 100 ? 2 : 0 }); }
-function money(n){ return fmt(n) + " " + settings.currency; }
-function pct(n){ return (n>0?"+":"") + n.toFixed(1) + "%"; }
-function escapeHTML(s){ const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+function blankOr(s, ph){ const v=esc(s); return v? v : `<span style="color:#9a958a;">${ph}</span>`; }
 
-/* ---------------- 3) الاستعلام والتجميع ---------------- */
-function forDate(d){ return records.filter(r => r.date === d); }
-function inRange(a, b){ return records.filter(r => r.date >= a && r.date <= b).sort((x,y) => x.date < y.date ? -1 : 1); }
-
-function agg(list){
-  const a = { total:0, cash:0, card:0, discounts:0, cogs:0, expenses:0, net:0, gross:0, profit:0, count:0 };
-  const days = new Set();
-  list.forEach(r => {
-    a.total += r.total; a.cash += r.cash; a.card += r.card; a.discounts += r.discounts;
-    a.cogs += r.cogs; a.expenses += r.expenses; a.net += r.net; a.gross += r.gross;
-    a.profit += r.profit; a.count++; days.add(r.date);
+/* ================= WIRE UP FORM ================= */
+document.querySelectorAll('.type-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    state.type = tab.dataset.type;
+    syncTypeUI();
+    render();
   });
-  a.days = days.size;
-  a.margin = a.net ? (a.profit / a.net) * 100 : 0;
-  return a;
-}
-function dayTotals(start, end, key){
-  const out = [];
-  for(let d = start; d <= end; d = addDays(d, 1)){
-    const a = agg(forDate(d));
-    out.push({ date: d, value: a[key], has: a.count > 0, a });
-  }
-  return out;
-}
-
-/* ---------------- 4) التنقل ---------------- */
-const TITLES = {
-  home:["اللوحة الرئيسية","نظرة اليوم وأثره على الشهر"],
-  add:["إدخال يوم جديد","سجّل مبيعات اليوم وتكاليفه"],
-  records:["السجلات","كل الأيام المحفوظة مع أرباحها"],
-  week:["الأسبوع","سبعة أيام جنبًا إلى جنب"],
-  month:["الشهر","من المبيعات إلى صافي الربح"],
-  compare:["المقارنة","قارن يومًا بيوم أو فترة بفترة"],
-  settings:["الإعدادات","العملة والهدف والنسخ الاحتياطي"]
-};
-function go(page){
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById("page-" + page).classList.add("active");
-  document.querySelectorAll(".nav-link").forEach(n => n.classList.toggle("active", n.dataset.page === page));
-  document.getElementById("pageTitle").textContent = TITLES[page][0];
-  document.getElementById("pageSub").textContent = TITLES[page][1];
-  closeMenu(); window.scrollTo({ top:0, behavior:"smooth" });
-  if(page === "home") renderHome();
-  if(page === "records") renderRecords();
-  if(page === "week") renderWeek();
-  if(page === "month") renderMonth();
-  if(page === "compare") renderCompare();
-  if(page === "settings") fillSettings();
-  if(page === "add" && !editingId) resetForm();
-}
-document.getElementById("nav").addEventListener("click", e => {
-  const l = e.target.closest(".nav-link"); if(l) go(l.dataset.page);
-});
-function openMenu(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("overlay").classList.add("show"); }
-function closeMenu(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("overlay").classList.remove("show"); }
-document.getElementById("menuBtn").addEventListener("click", openMenu);
-document.getElementById("overlay").addEventListener("click", closeMenu);
-
-/* ---------------- 5) نوافذ وإشعارات ---------------- */
-function modal(title, body, foot){
-  document.getElementById("modalTitle").textContent = title;
-  document.getElementById("modalBody").innerHTML = body;
-  document.getElementById("modalFoot").innerHTML = foot;
-  document.getElementById("modalBg").classList.add("show");
-}
-function closeModal(){ document.getElementById("modalBg").classList.remove("show"); pendingAction = null; }
-document.getElementById("modalBg").addEventListener("click", e => { if(e.target.id === "modalBg") closeModal(); });
-document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
-function confirmAction(title, body, label, cls, fn){
-  pendingAction = fn;
-  modal(title, body,
-    '<button class="btn btn-ghost" onclick="closeModal()">تراجع</button>' +
-    '<button class="btn ' + cls + '" onclick="runPending()">' + label + '</button>');
-}
-function runPending(){ const f = pendingAction; closeModal(); if(f) f(); }
-
-function toast(msg, kind){
-  const t = document.createElement("div");
-  t.className = "toast " + (kind || "");
-  t.textContent = msg;
-  document.getElementById("toast").appendChild(t);
-  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 250); }, 2400);
-}
-
-/* ---------------- 6) لبنات العرض ---------------- */
-function emptyBox(txt){ return '<div class="empty"><span class="ic">◇</span>' + txt + '</div>'; }
-
-function kpi(label, value, opts){
-  opts = opts || {};
-  const cls = ["kpi", opts.cls || ""].join(" ");
-  const foot = opts.foot ? '<div class="foot">' + opts.foot + '</div>' : "";
-  const cur = opts.raw ? "" : '<span class="cur">' + settings.currency + '</span>';
-  return '<div class="' + cls + '"><div class="lbl">' + label + '</div>' +
-         '<div class="val">' + value + cur + '</div>' + foot + '</div>';
-}
-function plKpi(label, profit, footHtml){
-  const loss = profit < 0;
-  return '<div class="kpi pl' + (loss ? " loss" : "") + ' wide"><div class="lbl">' + label +
-    (loss ? ' <span class="chip down">خسارة</span>' : (profit > 0 ? ' <span class="chip up">ربح</span>' : "")) +
-    '</div><div class="val">' + fmt(profit) + '<span class="cur">' + settings.currency + '</span></div>' +
-    (footHtml ? '<div class="foot">' + footHtml + '</div>' : "") + '</div>';
-}
-function chip(cur, prev, label){
-  if(prev === 0 && cur === 0) return '<span class="chip">لا تغيير ' + (label||"") + '</span>';
-  if(prev === 0) return '<span class="chip info">بيانات جديدة ' + (label||"") + '</span>';
-  const p = ((cur - prev) / Math.abs(prev)) * 100;
-  const cls = p > 0.5 ? "up" : (p < -0.5 ? "down" : "");
-  const arrow = p > 0.5 ? "▲" : (p < -0.5 ? "▼" : "•");
-  return '<span class="chip ' + cls + '">' + arrow + " " + pct(p) + " " + (label || "") + '</span>';
-}
-
-/* مخطط الربح/الخسارة حول خط الصفر */
-function plChart(el, items, clickable){
-  if(!items.length){ el.innerHTML = emptyBox("لا توجد بيانات في هذه الفترة"); return; }
-  const vals = items.map(i => i.value);
-  const maxUp = Math.max(0, ...vals);
-  const maxDown = Math.max(0, ...vals.map(v => -v));
-  const H = 168;
-  let upH, downH;
-  if(maxDown === 0){ upH = H; downH = 8; }
-  else if(maxUp === 0){ upH = 8; downH = H; }
-  else { upH = Math.round(H * maxUp / (maxUp + maxDown)); downH = H - upH; }
-  const unit = maxUp ? upH / maxUp : (maxDown ? downH / maxDown : 0);
-
-  el.innerHTML = items.map(i => {
-    const v = i.value;
-    const h = v === 0 ? 0 : Math.max(3, Math.round(Math.abs(v) * unit));
-    const barUp   = v > 0 ? '<div class="pl-bar" style="height:' + h + 'px"></div>' : "";
-    const barDown = v < 0 ? '<div class="pl-bar neg" style="height:' + h + 'px"></div>' : "";
-    const nil = (v === 0 && !i.has) ? '<div class="pl-bar nil" style="height:3px"></div>' : "";
-    return '<div class="pl-col" data-date="' + i.date + '">' +
-      '<div class="pl-tip">' + shortDate(i.date) + " · " + fmt(v) + '</div>' +
-      '<div class="pl-up" style="height:' + upH + 'px">' + barUp + '</div>' +
-      '<div class="pl-zero"></div>' +
-      '<div class="pl-down" style="height:' + downH + 'px">' + (barDown || nil) + '</div>' +
-      '<div class="pl-lbl">' + (i.label || shortDate(i.date)) + '</div></div>';
-  }).join("");
-
-  if(clickable){
-    el.querySelectorAll(".pl-col").forEach(c => c.addEventListener("click", () => {
-      document.getElementById("homeDate").value = c.dataset.date;
-      go("home");
-    }));
-  }
-}
-
-/* أعمدة بسيطة */
-function barChart(el, items){
-  const max = Math.max(1, ...items.map(i => Math.abs(i.value)));
-  el.innerHTML = items.map(i => {
-    const h = i.value === 0 ? 3 : Math.max(5, Math.round(Math.abs(i.value) / max * 118));
-    return '<div class="bar-col" title="' + i.label + ": " + fmt(i.value) + '">' +
-      '<div class="bar-val">' + (i.value ? fmt(i.value) : "") + '</div>' +
-      '<div class="bar ' + (i.value === 0 ? "nil" : (i.alt ? "alt" : "")) + '" style="height:' + h + 'px"></div>' +
-      '<div class="bar-lbl">' + i.label + '</div></div>';
-  }).join("");
-}
-
-/* شلال: من المبيعات إلى الربح */
-function waterfall(el, a){
-  const base = Math.max(a.total, 1);
-  const row = (label, val, cls, width, extra) =>
-    '<div class="wf-row ' + (extra || "") + '"><div class="wf-l">' + label + '</div>' +
-    '<div class="wf-track"><div class="wf-fill ' + cls + '" style="width:' + Math.min(100, width) + '%"></div></div>' +
-    '<div class="wf-v">' + fmt(val) + '</div></div>';
-  el.innerHTML =
-    row("إجمالي المبيعات", a.total, "sales", 100) +
-    row("− الخصومات", a.discounts, "cut", a.discounts / base * 100) +
-    row("− تكلفة البضاعة", a.cogs, "cost", a.cogs / base * 100) +
-    row("− مصاريف التشغيل", a.expenses, "exp", a.expenses / base * 100) +
-    row(a.profit < 0 ? "= صافي الخسارة" : "= صافي الربح", a.profit,
-        a.profit < 0 ? "loss" : "profit", Math.abs(a.profit) / base * 100, "total");
-}
-
-/* ================================================================
-   7) اللوحة الرئيسية
-   ================================================================ */
-document.getElementById("homeChartMode").addEventListener("click", e => {
-  const s = e.target.closest(".seg"); if(!s) return;
-  homeMode = s.dataset.m;
-  document.querySelectorAll("#homeChartMode .seg").forEach(x => x.classList.toggle("active", x === s));
-  renderHome();
-});
-["homeDate"].forEach(id => document.getElementById(id).addEventListener("change", renderHome));
-document.getElementById("homeToday").addEventListener("click", () => { document.getElementById("homeDate").value = today(); renderHome(); });
-document.getElementById("homePrev").addEventListener("click", () => { shiftHome(-1); });
-document.getElementById("homeNext").addEventListener("click", () => { shiftHome(1); });
-function shiftHome(n){
-  const el = document.getElementById("homeDate");
-  el.value = addDays(el.value || today(), n);
-  renderHome();
-}
-
-function renderHome(){
-  const el = document.getElementById("homeDate");
-  if(!el.value) el.value = today();
-  const d = el.value;
-  document.getElementById("homeDayName").textContent = dayName(d) + " · " + d;
-
-  const a = agg(forDate(d));
-  const y = agg(forDate(addDays(d, -1)));
-  const mr = monthRange(d.slice(0,7));
-  const m = agg(inRange(mr.start, d));
-
-  document.getElementById("homeKpis").innerHTML =
-    plKpi("ربح اليوم", a.profit,
-      chip(a.profit, y.profit, "عن أمس") +
-      '<span class="chip">الهامش ' + (a.net ? a.margin.toFixed(1) : "0") + '%</span>') +
-    kpi("صافي المبيعات", fmt(a.net), { cls:"accent", foot: chip(a.net, y.net, "عن أمس") }) +
-    kpi("تكلفة + مصاريف", fmt(a.cogs + a.expenses), { foot:'<span class="chip">بضاعة ' + fmt(a.cogs) + ' · تشغيل ' + fmt(a.expenses) + '</span>' }) +
-    kpi("نقدي / بطاقة", fmt(a.cash) + " / " + fmt(a.card), { raw:true, foot:'<span class="chip">الخصومات ' + fmt(a.discounts) + '</span>' }) +
-    plKpi("ربح الشهر حتى الآن", m.profit,
-      '<span class="chip">' + m.days + ' يوم عمل</span>' +
-      '<span class="chip">متوسط ' + fmt(m.days ? m.profit / m.days : 0) + ' / يوم</span>');
-
-  if(!a.count){
-    document.getElementById("homeKpis").insertAdjacentHTML("beforeend",
-      '<div class="kpi wide" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">' +
-      '<div><div class="lbl">لا يوجد سجل لهذا اليوم</div><div class="foot">أدخل أرقام اليوم لتظهر هنا</div></div>' +
-      '<button class="btn btn-primary btn-sm" onclick="quickAdd(\'' + d + '\')">إدخال اليوم</button></div>');
-  }
-
-  const from = addDays(d, -13);
-  const items = dayTotals(from, d, homeMode === "profit" ? "profit" : "net");
-  plChart(document.getElementById("homeChart"), items, false);
-
-  renderGoal(d);
-  renderInsights(d);
-}
-function quickAdd(d){ resetForm(); document.getElementById("fDate").value = d; go("add"); }
-
-function renderGoal(d){
-  const mr = monthRange(d.slice(0,7));
-  const m = agg(inRange(mr.start, mr.end));
-  const goal = num(settings.monthlyGoal);
-  const box = document.getElementById("goalBox");
-  const chipEl = document.getElementById("goalChip");
-
-  if(goal <= 0){
-    chipEl.textContent = "غير محدد";
-    box.innerHTML = '<div style="font-size:13px; color:var(--muted); line-height:1.8;">حدّد هدف ربح شهري من الإعدادات، وسيظهر لك هنا مقدار ما تحقق منه وكم تحتاج يوميًا لبلوغه.</div>';
-    return;
-  }
-  const done = Math.max(0, m.profit);
-  const p = Math.min(100, done / goal * 100);
-  const dayNo = Number(d.slice(8,10));
-  const left = Math.max(0, mr.days - dayNo);
-  const need = Math.max(0, goal - m.profit);
-  chipEl.textContent = p.toFixed(0) + "% من الهدف";
-  chipEl.className = "chip " + (p >= 100 ? "up" : (p >= 50 ? "info" : "warn"));
-  box.innerHTML =
-    '<div class="progress ' + (p >= 100 ? "over" : "") + '"><span style="width:' + p + '%"></span></div>' +
-    '<div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:11px; font-size:12.5px; color:var(--muted);">' +
-    '<span>تحقق <b style="color:var(--ink)">' + money(m.profit) + '</b> من ' + money(goal) + '</span>' +
-    (need > 0
-      ? '<span>يتبقى ' + money(need) + (left > 0 ? ' — أي ' + money(need / left) + ' يوميًا خلال ' + left + ' يوم' : "") + '</span>'
-      : '<span class="t-up">تم تجاوز الهدف بمقدار ' + money(m.profit - goal) + '</span>') +
-    '</div>';
-}
-
-/* التحليل الذكي: ملاحظات مبنية على أرقام المستخدم فقط */
-function renderInsights(d){
-  const box = document.getElementById("insights");
-  const out = [];
-  const add = (kind, ic, txt) => out.push('<div class="insight ' + kind + '"><span class="ic">' + ic + '</span><span>' + txt + '</span></div>');
-
-  if(records.length < 3){
-    add("info", "◇", "أدخل بيانات ثلاثة أيام على الأقل لتبدأ الملاحظات التلقائية بالظهور هنا.");
-    box.innerHTML = out.join(""); return;
-  }
-
-  const mKey = d.slice(0,7), mr = monthRange(mKey);
-  const cur  = agg(inRange(mr.start, mr.end));
-  const pKey = addMonths(mKey, -1), pr = monthRange(pKey);
-  const prev = agg(inRange(pr.start, pr.end));
-
-  // 1) اتجاه الشهر
-  if(prev.days && cur.days){
-    const cAvg = cur.profit / cur.days, pAvg = prev.profit / prev.days;
-    const diff = pAvg !== 0 ? ((cAvg - pAvg) / Math.abs(pAvg)) * 100 : 0;
-    if(Math.abs(diff) >= 5){
-      add(diff > 0 ? "good" : "bad", diff > 0 ? "▲" : "▼",
-        "متوسط الربح اليومي في " + monthLabel(mKey) + " " + (diff > 0 ? "أعلى" : "أقل") + " بنسبة " +
-        Math.abs(diff).toFixed(0) + "% من " + monthLabel(pKey) + " (" + money(cAvg) + " مقابل " + money(pAvg) + ").");
-    }
-  }
-
-  // 2) أفضل يوم في الأسبوع
-  const byDay = Array.from({length:7}, () => ({ p:0, n:0 }));
-  records.forEach(r => { const i = dayIndex(r.date); byDay[i].p += r.profit; byDay[i].n++; });
-  const ranked = byDay.map((x,i) => ({ i, avg: x.n ? x.p / x.n : null, n: x.n })).filter(x => x.n >= 2);
-  if(ranked.length >= 3){
-    ranked.sort((a,b) => b.avg - a.avg);
-    const best = ranked[0], worst = ranked[ranked.length-1];
-    add("info", "◈", "أقوى أيامك هو <b>" + WEEKDAYS[best.i] + "</b> بمتوسط ربح " + money(best.avg) +
-      "، وأضعفها <b>" + WEEKDAYS[worst.i] + "</b> بمتوسط " + money(worst.avg) + ".");
-  }
-
-  // 3) أيام الخسارة هذا الشهر
-  const lossDays = inRange(mr.start, mr.end).filter(r => r.profit < 0);
-  if(lossDays.length){
-    const sum = lossDays.reduce((s,r) => s + r.profit, 0);
-    add("bad", "▼", "سجّلت <b>" + lossDays.length + "</b> يوم خسارة في " + monthLabel(mKey) +
-      " بمجموع " + money(Math.abs(sum)) + "، آخرها " + lossDays[lossDays.length-1].date + ".");
-  } else if(cur.days >= 5){
-    add("good", "▲", "لا يوجد يوم خسارة واحد في " + monthLabel(mKey) + " حتى الآن.");
-  }
-
-  // 4) نسبة الخصومات
-  if(cur.total > 0){
-    const dr = cur.discounts / cur.total * 100;
-    if(dr >= 10) add("warn", "◆", "الخصومات تلتهم <b>" + dr.toFixed(1) + "%</b> من مبيعات الشهر (" +
-      money(cur.discounts) + "). خفضها إلى 5% يضيف نحو " + money(cur.total * (dr-5) / 100) + " للربح.");
-  }
-
-  // 5) نقطة التعادل اليومية
-  if(cur.days >= 3 && cur.net > 0){
-    const grossRate = cur.gross / cur.net;
-    const avgExp = cur.expenses / cur.days;
-    if(grossRate > 0.02 && avgExp > 0){
-      add("info", "◎", "نقطة التعادل: تحتاج نحو <b>" + money(avgExp / grossRate) +
-        "</b> صافي مبيعات يوميًا لتغطية مصاريفك قبل أن يبدأ الربح.");
-    }
-  }
-
-  // 6) توقع نهاية الشهر
-  if(cur.days >= 3){
-    const proj = (cur.profit / cur.days) * mr.days;
-    add(proj >= 0 ? "good" : "bad", "◉", "بهذه الوتيرة يُتوقع أن يُغلق " + monthLabel(mKey) + " على " +
-      (proj >= 0 ? "ربح " : "خسارة ") + "<b>" + money(Math.abs(proj)) + "</b> تقريبًا.");
-  }
-
-  // 7) سلسلة أيام الربح
-  const sorted = records.slice().sort((a,b) => a.date < b.date ? 1 : -1);
-  let streak = 0;
-  for(const r of sorted){ if(r.profit > 0) streak++; else break; }
-  if(streak >= 3) add("good", "★", "<b>" + streak + "</b> يوم ربح متتالٍ حتى " + sorted[0].date + ". حافظ على الوتيرة.");
-
-  box.innerHTML = out.slice(0, 6).join("") || emptyBox("لا توجد ملاحظات بعد");
-}
-
-/* ================================================================
-   8) إدخال / تعديل يوم
-   ================================================================ */
-const F = {
-  date: document.getElementById("fDate"), cash: document.getElementById("fCash"),
-  card: document.getElementById("fCard"), disc: document.getElementById("fDisc"),
-  cogs: document.getElementById("fCogs"), exp: document.getElementById("fExp"),
-  notes: document.getElementById("fNotes")
-};
-[F.cash, F.card, F.disc, F.cogs, F.exp].forEach(i => i.addEventListener("input", preview));
-
-function currentForm(){
-  const cash = num(F.cash.value), card = num(F.card.value), discounts = num(F.disc.value);
-  const cogs = num(F.cogs.value), expenses = num(F.exp.value);
-  const total = cash + card, net = total - discounts;
-  return { cash, card, discounts, cogs, expenses, total, net, gross: net - cogs, profit: net - cogs - expenses };
-}
-function preview(){
-  const v = currentForm();
-  const margin = v.net ? (v.profit / v.net) * 100 : 0;
-  document.getElementById("preview").innerHTML =
-    '<div class="p-item"><div class="l">إجمالي المبيعات</div><div class="v">' + money(v.total) + '</div></div>' +
-    '<div class="p-item"><div class="l">صافي المبيعات</div><div class="v">' + money(v.net) + '</div></div>' +
-    '<div class="p-item"><div class="l">مجمل الربح</div><div class="v">' + money(v.gross) + '</div></div>' +
-    '<div class="p-item res' + (v.profit < 0 ? " neg" : "") + '"><div class="l">' +
-      (v.profit < 0 ? "صافي الخسارة" : "صافي الربح") + '</div><div class="v">' + money(v.profit) + '</div></div>' +
-    '<div class="p-item"><div class="l">هامش الربح</div><div class="v">' + margin.toFixed(1) + '%</div></div>';
-}
-function resetForm(){
-  editingId = null;
-  document.getElementById("addTitle").textContent = "إدخال يوم جديد";
-  document.getElementById("saveBtn").textContent = "حفظ اليوم";
-  document.getElementById("cancelEdit").style.display = "none";
-  F.date.value = today();
-  [F.cash, F.card, F.disc, F.cogs, F.exp, F.notes].forEach(i => i.value = "");
-  document.getElementById("addAlerts").innerHTML = "";
-  preview();
-}
-function editRecord(id){
-  const r = records.find(x => x.id === id); if(!r) return;
-  editingId = id; go("add");
-  document.getElementById("addTitle").textContent = "تعديل يوم " + r.date;
-  document.getElementById("saveBtn").textContent = "حفظ التعديل";
-  document.getElementById("cancelEdit").style.display = "inline-flex";
-  F.date.value = r.date; F.cash.value = r.cash; F.card.value = r.card;
-  F.disc.value = r.discounts; F.cogs.value = r.cogs; F.exp.value = r.expenses;
-  F.notes.value = r.notes || "";
-  document.getElementById("addAlerts").innerHTML = "";
-  preview();
-}
-document.getElementById("cancelEdit").addEventListener("click", resetForm);
-document.getElementById("clearBtn").addEventListener("click", () => {
-  [F.cash, F.card, F.disc, F.cogs, F.exp, F.notes].forEach(i => i.value = "");
-  preview();
 });
 
-document.getElementById("addForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const box = document.getElementById("addAlerts"); box.innerHTML = "";
-  const date = F.date.value;
-  const v = currentForm();
-
-  if(!date){ box.innerHTML = '<div class="alert alert-err">اختر تاريخ اليوم أولًا.</div>'; return; }
-  if([v.cash, v.card, v.discounts, v.cogs, v.expenses].some(x => x < 0)){
-    box.innerHTML = '<div class="alert alert-err">الأرقام السالبة غير مقبولة. أدخل القيم موجبة، والخسارة تُحسب تلقائيًا.</div>'; return;
-  }
-  if(v.discounts > v.total){
-    box.innerHTML = '<div class="alert alert-err">الخصومات (' + fmt(v.discounts) + ') أكبر من إجمالي المبيعات (' + fmt(v.total) + '). راجع الأرقام.</div>'; return;
-  }
-  const clash = forDate(date).filter(r => r.id !== editingId);
-  if(clash.length && !settings.allowMultiplePerDay){
-    box.innerHTML = '<div class="alert alert-warn">يوجد سجل محفوظ بتاريخ ' + date +
-      '. <button type="button" class="btn btn-sm btn-outline" style="margin-inline-start:6px;" onclick="editRecord(\'' + clash[0].id + '\')">افتحه للتعديل</button>' +
-      ' أو فعّل الورديات المتعددة من الإعدادات.</div>'; return;
-  }
-
-  const now = new Date().toISOString();
-  const payload = { date, ...v, notes: F.notes.value.trim(), updatedAt: now };
-  if(editingId){
-    const i = records.findIndex(r => r.id === editingId);
-    records[i] = normalize({ ...records[i], ...payload });
-    toast("تم حفظ التعديل", "ok");
-  } else {
-    records.push(normalize({ id: uid(), createdAt: now, ...payload }));
-    toast(v.profit < 0 ? "حُفظ اليوم — النتيجة خسارة " + money(Math.abs(v.profit)) : "حُفظ اليوم — ربح " + money(v.profit), v.profit < 0 ? "err" : "ok");
-  }
-  saveRecords();
-  resetForm();
-  document.getElementById("homeDate").value = date;
-});
-
-/* ================================================================
-   9) السجلات
-   ================================================================ */
-function recFilter(){
-  const f = document.getElementById("recFrom").value;
-  const t = document.getElementById("recTo").value;
-  let list = records.slice();
-  if(f) list = list.filter(r => r.date >= f);
-  if(t) list = list.filter(r => r.date <= t);
-  return list.sort((a,b) => a.date < b.date ? 1 : -1);
-}
-function renderRecords(){
-  document.getElementById("printMeta").textContent =
-    "طُبع في " + today() + " · العملة: " + settings.currency;
-  const list = recFilter();
-  const a = agg(list);
-
-  document.getElementById("recKpis").innerHTML =
-    kpi("صافي المبيعات", fmt(a.net), { cls:"accent" }) +
-    kpi("التكلفة والمصاريف", fmt(a.cogs + a.expenses), {}) +
-    kpi(a.profit < 0 ? "صافي الخسارة" : "صافي الربح", fmt(a.profit),
-        { cls: a.profit < 0 ? "pl loss" : "pl", foot:'<span class="chip">الهامش ' + a.margin.toFixed(1) + '%</span>' }) +
-    kpi("أيام مسجلة", a.days, { raw:true, foot:'<span class="chip">متوسط الربح ' + fmt(a.days ? a.profit / a.days : 0) + '</span>' });
-
-  const body = document.getElementById("recBody");
-  const foot = document.getElementById("recFoot");
-  const empty = document.getElementById("recEmpty");
-  if(!list.length){
-    body.innerHTML = ""; foot.innerHTML = "";
-    empty.innerHTML = emptyBox("لا توجد سجلات في هذا النطاق. غيّر التاريخ أو أضف يومًا جديدًا.");
-    return;
-  }
-  empty.innerHTML = "";
-  body.innerHTML = list.map(r => {
-    const mg = r.net ? (r.profit / r.net * 100) : 0;
-    return '<tr>' +
-      '<td class="t-strong">' + r.date + '</td>' +
-      '<td class="t-mute">' + dayName(r.date) + '</td>' +
-      '<td class="t-strong">' + fmt(r.net) + '</td>' +
-      '<td>' + fmt(r.cash) + '</td><td>' + fmt(r.card) + '</td>' +
-      '<td>' + fmt(r.discounts) + '</td><td>' + fmt(r.cogs) + '</td><td>' + fmt(r.expenses) + '</td>' +
-      '<td class="' + (r.profit < 0 ? "t-down" : "t-up") + '">' + fmt(r.profit) + '</td>' +
-      '<td class="' + (mg < 0 ? "t-down" : "t-mute") + '">' + mg.toFixed(1) + '%</td>' +
-      '<td class="no-print"><div class="row-actions">' +
-        '<button class="ibtn" title="تفاصيل" onclick="details(\'' + r.id + '\')">◔</button>' +
-        '<button class="ibtn" title="تعديل" onclick="editRecord(\'' + r.id + '\')">✎</button>' +
-        '<button class="ibtn del" title="حذف" onclick="askDelete(\'' + r.id + '\')">✕</button>' +
-      '</div></td></tr>';
-  }).join("");
-  foot.innerHTML = '<tr><td colspan="2">الإجمالي (' + a.days + ' يوم)</td>' +
-    '<td>' + fmt(a.net) + '</td><td>' + fmt(a.cash) + '</td><td>' + fmt(a.card) + '</td>' +
-    '<td>' + fmt(a.discounts) + '</td><td>' + fmt(a.cogs) + '</td><td>' + fmt(a.expenses) + '</td>' +
-    '<td class="' + (a.profit < 0 ? "t-down" : "t-up") + '">' + fmt(a.profit) + '</td>' +
-    '<td>' + a.margin.toFixed(1) + '%</td><td class="no-print"></td></tr>';
-}
-["recFrom","recTo"].forEach(id => document.getElementById(id).addEventListener("change", renderRecords));
-document.getElementById("recAll").addEventListener("click", () => {
-  document.getElementById("recFrom").value = ""; document.getElementById("recTo").value = "";
-  renderRecords();
-});
-document.getElementById("printBtn").addEventListener("click", () => window.print());
-document.getElementById("csvBtn").addEventListener("click", () => {
-  const list = recFilter().slice().reverse();
-  if(!list.length){ toast("لا توجد بيانات للتصدير", "err"); return; }
-  const head = ["التاريخ","اليوم","نقدي","بطاقة","إجمالي المبيعات","الخصومات","صافي المبيعات","تكلفة البضاعة","المصاريف","صافي الربح","ملاحظات"];
-  const rows = list.map(r => [r.date, dayName(r.date), r.cash, r.card, r.total, r.discounts, r.net, r.cogs, r.expenses, r.profit,
-    '"' + (r.notes || "").replace(/"/g, "'") + '"']);
-  download("\uFEFF" + [head.join(","), ...rows.map(r => r.join(","))].join("\n"),
-    "سجل-المبيعات-" + today() + ".csv", "text/csv;charset=utf-8;");
-  toast("تم تصدير " + list.length + " سجل", "ok");
-});
-function download(content, name, type){
-  const b = new Blob([content], { type });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(b); a.download = name; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-}
-
-function details(id){
-  const r = records.find(x => x.id === id); if(!r) return;
-  const mg = r.net ? (r.profit / r.net * 100) : 0;
-  const line = (l, v, cls) => '<tr><td class="t-mute">' + l + '</td><td class="' + (cls||"t-strong") + '">' + v + '</td></tr>';
-  modal("يوم " + r.date + " · " + dayName(r.date),
-    '<div class="scroll-x"><table><tbody>' +
-      line("نقدي", money(r.cash)) + line("بطاقة", money(r.card)) +
-      line("إجمالي المبيعات", money(r.total)) + line("الخصومات", money(r.discounts)) +
-      line("صافي المبيعات", money(r.net)) + line("تكلفة البضاعة", money(r.cogs)) +
-      line("مجمل الربح", money(r.gross)) + line("مصاريف التشغيل", money(r.expenses)) +
-      line(r.profit < 0 ? "صافي الخسارة" : "صافي الربح", money(r.profit), r.profit < 0 ? "t-down" : "t-up") +
-      line("هامش الربح", mg.toFixed(1) + "%") +
-      (r.notes ? line("ملاحظة", escapeHTML(r.notes)) : "") +
-    '</tbody></table></div>',
-    '<button class="btn btn-ghost" onclick="closeModal(); editRecord(\'' + r.id + '\')">تعديل</button>' +
-    '<button class="btn btn-primary" onclick="closeModal()">إغلاق</button>');
-}
-function askDelete(id){
-  const r = records.find(x => x.id === id); if(!r) return;
-  confirmAction("حذف سجل " + r.date, "سيُحذف هذا اليوم نهائيًا ولن تتمكن من استرجاعه.", "حذف", "btn-danger", () => {
-    records = records.filter(x => x.id !== id);
-    saveRecords(); renderRecords(); toast("حُذف السجل", "ok");
+function syncTypeUI(){
+  document.querySelectorAll('.type-tab').forEach(t=>t.classList.toggle('active', t.dataset.type===state.type));
+  document.querySelectorAll('.type-section').forEach(s=>{
+    s.style.display = (s.dataset.type===state.type) ? '' : 'none';
   });
+  renderWorkersEditor();
 }
 
-/* ================================================================
-   10) الأسبوع
-   ================================================================ */
-function renderWeek(){
-  const el = document.getElementById("weekDate");
-  if(!el.value) el.value = today();
-  const { start, end } = weekRange(el.value, settings.weekStartDay);
-  document.getElementById("weekRange").textContent = start + " ← " + end;
+const bindText = (id, key)=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', ()=>{ state[key]=el.value; render(); });
+};
+bindText('f_docDate','docDate'); document.getElementById('f_docDate').value = state.docDate;
+bindText('f_refNo','refNo');
+bindText('p_sponsorTitle','p_sponsorTitle');
+document.getElementById('p_sponsorTitle').addEventListener('change', e=>{ state.p_sponsorTitle=e.target.value; render();});
+bindText('p_sponsorName','p_sponsorName');
 
-  const cur = agg(inRange(start, end));
-  const prv = agg(inRange(addDays(start, -7), addDays(end, -7)));
+document.getElementById('r_applicantTitle').addEventListener('change', e=>{ state.r_applicantTitle=e.target.value; render();});
+bindText('r_applicantName','r_applicantName');
+bindText('r_nationalId','r_nationalId');
+bindText('r_familyNo','r_familyNo');
+bindText('r_receivedDate','r_receivedDate');
+bindText('r_startDate','r_startDate');
 
-  document.getElementById("weekKpis").innerHTML =
-    plKpi("ربح الأسبوع", cur.profit, chip(cur.profit, prv.profit, "عن الأسبوع السابق") +
-      '<span class="chip">الهامش ' + cur.margin.toFixed(1) + '%</span>') +
-    kpi("صافي المبيعات", fmt(cur.net), { cls:"accent", foot: chip(cur.net, prv.net, "عن السابق") }) +
-    kpi("التكلفة والمصاريف", fmt(cur.cogs + cur.expenses), { foot: chip(cur.cogs + cur.expenses, prv.cogs + prv.expenses, "عن السابق") }) +
-    kpi("أيام العمل", cur.days + " / 7", { raw:true, foot:'<span class="chip">متوسط ' + fmt(cur.days ? cur.profit / cur.days : 0) + ' ربح/يوم</span>' });
+document.getElementById('i_applicantTitle').addEventListener('change', e=>{ state.i_applicantTitle=e.target.value; render();});
+bindText('i_applicantName','i_applicantName');
+bindText('i_familyNo','i_familyNo');
+bindText('i_receivedNo','i_receivedNo');
+bindText('i_companyName','i_companyName');
+bindText('i_companyRefNo','i_companyRefNo');
+bindText('i_companyRefDate','i_companyRefDate');
+bindText('i_underRefNo','i_underRefNo');
+bindText('i_underRefDate','i_underRefDate');
+bindText('i_receivedDate','i_receivedDate');
+bindText('i_startDate','i_startDate');
 
-  const items = dayTotals(start, end, "profit").map(x => ({ ...x, label: WEEKDAYS[dayIndex(x.date)].slice(0,4) }));
-  plChart(document.getElementById("weekChart"), items, true);
-
-  document.getElementById("weekBody").innerHTML = items.map(x => {
-    const a = x.a;
-    const mg = a.net ? (a.profit / a.net * 100) : 0;
-    if(!x.has) return '<tr><td class="t-strong">' + x.date + '</td><td class="t-mute">' + dayName(x.date) +
-      '</td><td colspan="6" class="t-mute">— لا يوجد سجل —</td></tr>';
-    return '<tr><td class="t-strong">' + x.date + '</td><td class="t-mute">' + dayName(x.date) + '</td>' +
-      '<td>' + fmt(a.net) + '</td><td>' + fmt(a.discounts) + '</td><td>' + fmt(a.cogs) + '</td><td>' + fmt(a.expenses) + '</td>' +
-      '<td class="' + (a.profit < 0 ? "t-down" : "t-up") + '">' + fmt(a.profit) + '</td>' +
-      '<td class="t-mute">' + mg.toFixed(1) + '%</td></tr>';
-  }).join("");
-}
-document.getElementById("weekDate").addEventListener("change", renderWeek);
-document.getElementById("weekPrev").addEventListener("click", () => {
-  const el = document.getElementById("weekDate"); el.value = addDays(el.value || today(), -7); renderWeek();
+document.getElementById('i_sp_individual').addEventListener('click', ()=>{
+  state.i_sponsorType='individual';
+  document.getElementById('i_sp_individual').classList.add('active');
+  document.getElementById('i_sp_company').classList.remove('active');
+  document.getElementById('i_individual_fields').style.display='';
+  document.getElementById('i_company_fields').style.display='none';
+  document.getElementById('i_genderRow').style.display='';
+  render();
 });
-document.getElementById("weekNext").addEventListener("click", () => {
-  const el = document.getElementById("weekDate"); el.value = addDays(el.value || today(), 7); renderWeek();
+document.getElementById('i_sp_company').addEventListener('click', ()=>{
+  state.i_sponsorType='company';
+  document.getElementById('i_sp_company').classList.add('active');
+  document.getElementById('i_sp_individual').classList.remove('active');
+  document.getElementById('i_company_fields').style.display='';
+  document.getElementById('i_individual_fields').style.display='none';
+  document.getElementById('i_genderRow').style.display='none';
+  render();
 });
-
-/* ================================================================
-   11) الشهر
-   ================================================================ */
-document.getElementById("monthChartMode").addEventListener("click", e => {
-  const s = e.target.closest(".seg"); if(!s) return;
-  monthMode = s.dataset.m;
-  document.querySelectorAll("#monthChartMode .seg").forEach(x => x.classList.toggle("active", x === s));
-  renderMonth();
-});
-document.getElementById("monthPick").addEventListener("change", renderMonth);
-document.getElementById("monthPrint").addEventListener("click", () => window.print());
-
-function renderMonth(){
-  const el = document.getElementById("monthPick");
-  if(!el.value) el.value = thisMonth();
-  const key = el.value, mr = monthRange(key);
-  document.getElementById("monthName").textContent = monthLabel(key);
-
-  const cur = agg(inRange(mr.start, mr.end));
-  const pKey = addMonths(key, -1), pr = monthRange(pKey);
-  const prv = agg(inRange(pr.start, pr.end));
-
-  document.getElementById("monthKpis").innerHTML =
-    plKpi(cur.profit < 0 ? "خسارة الشهر" : "ربح الشهر", cur.profit,
-      chip(cur.profit, prv.profit, "عن " + monthLabel(pKey)) +
-      '<span class="chip">الهامش ' + cur.margin.toFixed(1) + '%</span>') +
-    kpi("صافي المبيعات", fmt(cur.net), { cls:"accent", foot: chip(cur.net, prv.net, "عن الشهر السابق") }) +
-    kpi("مجمل الربح", fmt(cur.gross), { foot:'<span class="chip">بعد خصم تكلفة البضاعة</span>' }) +
-    kpi("أيام العمل", cur.days + " / " + mr.days, { raw:true,
-      foot:'<span class="chip">متوسط ' + fmt(cur.days ? cur.profit / cur.days : 0) + ' ربح/يوم</span>' });
-
-  waterfall(document.getElementById("waterfall"), cur);
-
-  const items = dayTotals(mr.start, mr.end, monthMode === "profit" ? "profit" : "net")
-    .map(x => ({ ...x, label: String(Number(x.date.slice(8,10))) }));
-  plChart(document.getElementById("monthChart"), items, true);
-
-  // مقارنة تفصيلية بالشهر السابق
-  const rows = [
-    ["صافي المبيعات", cur.net, prv.net],
-    ["تكلفة البضاعة", cur.cogs, prv.cogs],
-    ["مصاريف التشغيل", cur.expenses, prv.expenses],
-    ["الخصومات", cur.discounts, prv.discounts],
-    ["صافي الربح", cur.profit, prv.profit],
-    ["متوسط الربح اليومي", cur.days ? cur.profit / cur.days : 0, prv.days ? prv.profit / prv.days : 0],
-    ["أيام العمل", cur.days, prv.days]
-  ];
-  const withData = inRange(mr.start, mr.end);
-  const best = withData.slice().sort((a,b) => b.profit - a.profit)[0];
-  const worst = withData.slice().sort((a,b) => a.profit - b.profit)[0];
-
-  document.getElementById("monthVs").innerHTML =
-    '<tr><td></td><td class="t-strong">' + monthLabel(key) + '</td><td class="t-mute">' + monthLabel(pKey) + '</td><td>الفرق</td></tr>' +
-    rows.map(([l, c, p]) =>
-      '<tr><td>' + l + '</td><td class="t-strong">' + fmt(c) + '</td><td class="t-mute">' + fmt(p) + '</td>' +
-      '<td>' + chip(c, p, "") + '</td></tr>').join("") +
-    (best ? '<tr><td>أفضل يوم</td><td colspan="3" class="t-up">' + best.date + " · " + dayName(best.date) + " · " + money(best.profit) + '</td></tr>' : "") +
-    (worst && withData.length > 1 ? '<tr><td>أضعف يوم</td><td colspan="3" class="' + (worst.profit < 0 ? "t-down" : "t-mute") + '">' +
-      worst.date + " · " + dayName(worst.date) + " · " + money(worst.profit) + '</td></tr>' : "");
-}
-
-/* ================================================================
-   12) المقارنة
-   ================================================================ */
-document.getElementById("cmpTabs").addEventListener("click", e => {
-  const s = e.target.closest(".seg"); if(!s) return;
-  cmpTab = s.dataset.t;
-  document.querySelectorAll("#cmpTabs .seg").forEach(x => x.classList.toggle("active", x === s));
-  renderCompare();
+document.getElementById('i_exemptSwitch').addEventListener('click', function(){
+  state.i_exempt = !state.i_exempt;
+  this.classList.toggle('on', state.i_exempt);
+  document.getElementById('i_exempt_fields').style.display = state.i_exempt ? '' : 'none';
+  render();
 });
 
-function renderCompare(){
-  const c = document.getElementById("cmpControls");
-  const r = document.getElementById("cmpResult");
-  r.innerHTML = "";
-  if(cmpTab === "days"){
-    c.innerHTML =
-      '<div class="tools">' +
-      '<input type="date" id="cmpA" class="inline-input" value="' + today() + '">' +
-      '<span class="t-mute">مقابل</span>' +
-      '<input type="date" id="cmpB" class="inline-input" value="' + addDays(today(), -1) + '">' +
-      '<button class="btn btn-primary btn-sm" onclick="runDayCompare()">قارن</button>' +
-      '<button class="btn btn-ghost btn-sm" onclick="presetDays(7)">اليوم مقابل نفس اليوم الأسبوع الماضي</button>' +
-      '</div>';
-    runDayCompare();
-  } else if(cmpTab === "periods"){
-    const mr = monthRange(thisMonth()), pr = monthRange(addMonths(thisMonth(), -1));
-    c.innerHTML =
-      '<div class="tools" style="margin-bottom:10px;">' +
-      '<button class="btn btn-ghost btn-sm" onclick="presetPeriod(\'week\')">هذا الأسبوع / السابق</button>' +
-      '<button class="btn btn-ghost btn-sm" onclick="presetPeriod(\'month\')">هذا الشهر / السابق</button>' +
-      '<button class="btn btn-ghost btn-sm" onclick="presetPeriod(\'d30\')">آخر 30 يومًا / التي قبلها</button>' +
-      '</div>' +
-      '<div class="vs-grid">' +
-        '<div class="vs-side"><div class="t">الفترة الأولى</div>' +
-          '<input type="date" id="pA1" class="inline-input" value="' + mr.start + '"> ' +
-          '<input type="date" id="pA2" class="inline-input" value="' + mr.end + '"></div>' +
-        '<div class="vs-mid">مقابل</div>' +
-        '<div class="vs-side"><div class="t">الفترة الثانية</div>' +
-          '<input type="date" id="pB1" class="inline-input" value="' + pr.start + '"> ' +
-          '<input type="date" id="pB2" class="inline-input" value="' + pr.end + '"></div>' +
-      '</div>' +
-      '<div class="tools" style="margin-top:12px;"><button class="btn btn-primary btn-sm" onclick="runPeriodCompare()">قارن الفترتين</button></div>';
-    runPeriodCompare();
-  } else {
-    c.innerHTML =
-      '<div class="tools">' +
-      '<select id="wdScope" class="inline-input" onchange="runWeekdayCompare()">' +
-        '<option value="all">كل البيانات</option>' +
-        '<option value="90">آخر 90 يومًا</option>' +
-        '<option value="30">آخر 30 يومًا</option>' +
-      '</select>' +
-      '<span class="t-mute" style="font-size:12.5px;">متوسط أداء كل يوم من أيام الأسبوع</span>' +
-      '</div>';
-    runWeekdayCompare();
-  }
-}
-function presetDays(n){
-  document.getElementById("cmpA").value = today();
-  document.getElementById("cmpB").value = addDays(today(), -n);
-  runDayCompare();
-}
-function metricRows(A, B, labelA, labelB){
-  const rows = [
-    ["صافي المبيعات", A.net, B.net],
-    ["نقدي", A.cash, B.cash],
-    ["بطاقة", A.card, B.card],
-    ["الخصومات", A.discounts, B.discounts],
-    ["تكلفة البضاعة", A.cogs, B.cogs],
-    ["مصاريف التشغيل", A.expenses, B.expenses],
-    ["مجمل الربح", A.gross, B.gross],
-    ["صافي الربح", A.profit, B.profit]
-  ];
-  return '<div class="scroll-x"><table class="vs-table"><thead><tr><th>البند</th><th>' + labelA + '</th><th>' + labelB + '</th><th>الفرق</th><th>النسبة</th></tr></thead><tbody>' +
-    rows.map(([l, a, b]) => {
-      const diff = a - b;
-      const cls = l === "صافي الربح" || l === "مجمل الربح" || l === "صافي المبيعات"
-        ? (diff > 0 ? "t-up" : (diff < 0 ? "t-down" : "")) : "";
-      return '<tr><td class="t-mute">' + l + '</td><td class="t-strong">' + fmt(a) + '</td><td>' + fmt(b) + '</td>' +
-        '<td class="' + cls + '">' + (diff > 0 ? "+" : "") + fmt(diff) + '</td><td>' + chip(a, b, "") + '</td></tr>';
-    }).join("") +
-    '<tr><td class="t-mute">هامش الربح</td><td class="t-strong">' + A.margin.toFixed(1) + '%</td><td>' + B.margin.toFixed(1) +
-    '%</td><td colspan="2">' + (A.margin - B.margin >= 0 ? "+" : "") + (A.margin - B.margin).toFixed(1) + ' نقطة</td></tr>' +
-    '</tbody></table></div>';
-}
-function headline(A, B, labelA, labelB){
-  const d = A.profit - B.profit;
-  return '<div class="vs-grid" style="margin-bottom:14px;">' +
-    '<div class="vs-side"><div class="t">' + labelA + '</div><div class="d ' + (A.profit < 0 ? "t-down" : "t-up") + '">' + money(A.profit) + '</div>' +
-      '<div class="t" style="margin-top:6px;">مبيعات ' + fmt(A.net) + '</div></div>' +
-    '<div class="vs-mid">' + (d === 0 ? "تعادل" : (d > 0 ? "الأفضل: الأول" : "الأفضل: الثاني")) + '<br>' +
-      '<span style="font-size:12px; font-weight:600;">فرق ' + money(Math.abs(d)) + '</span></div>' +
-    '<div class="vs-side"><div class="t">' + labelB + '</div><div class="d ' + (B.profit < 0 ? "t-down" : "t-up") + '">' + money(B.profit) + '</div>' +
-      '<div class="t" style="margin-top:6px;">مبيعات ' + fmt(B.net) + '</div></div>' +
-    '</div>';
-}
-function runDayCompare(){
-  const a = document.getElementById("cmpA").value, b = document.getElementById("cmpB").value;
-  const box = document.getElementById("cmpResult");
-  if(!a || !b){ box.innerHTML = emptyBox("اختر تاريخين للمقارنة"); return; }
-  const A = agg(forDate(a)), B = agg(forDate(b));
-  if(!A.count && !B.count){ box.innerHTML = emptyBox("لا يوجد سجل في أي من اليومين"); return; }
-  const la = a + " · " + dayName(a), lb = b + " · " + dayName(b);
-  box.innerHTML = headline(A, B, la, lb) + metricRows(A, B, la, lb);
-}
-function presetPeriod(kind){
-  let a1, a2, b1, b2;
-  if(kind === "week"){
-    const w = weekRange(today(), settings.weekStartDay);
-    a1 = w.start; a2 = w.end; b1 = addDays(w.start, -7); b2 = addDays(w.end, -7);
-  } else if(kind === "month"){
-    const m = monthRange(thisMonth()), p = monthRange(addMonths(thisMonth(), -1));
-    a1 = m.start; a2 = m.end; b1 = p.start; b2 = p.end;
-  } else {
-    a2 = today(); a1 = addDays(a2, -29); b2 = addDays(a1, -1); b1 = addDays(b2, -29);
-  }
-  document.getElementById("pA1").value = a1; document.getElementById("pA2").value = a2;
-  document.getElementById("pB1").value = b1; document.getElementById("pB2").value = b2;
-  runPeriodCompare();
-}
-function runPeriodCompare(){
-  const a1 = document.getElementById("pA1").value, a2 = document.getElementById("pA2").value;
-  const b1 = document.getElementById("pB1").value, b2 = document.getElementById("pB2").value;
-  const box = document.getElementById("cmpResult");
-  if(!a1 || !a2 || !b1 || !b2 || a1 > a2 || b1 > b2){
-    box.innerHTML = '<div class="alert alert-err">تحقق من التواريخ: تاريخ البداية يجب أن يسبق النهاية في كل فترة.</div>'; return;
-  }
-  const A = agg(inRange(a1, a2)), B = agg(inRange(b1, b2));
-  const la = a1 + " ← " + a2, lb = b1 + " ← " + b2;
-  box.innerHTML = headline(A, B, la, lb) +
-    '<div class="tools" style="margin-bottom:12px;">' +
-      '<span class="chip">أيام الأولى: ' + A.days + '</span>' +
-      '<span class="chip">أيام الثانية: ' + B.days + '</span>' +
-      '<span class="chip">متوسط ربح يومي: ' + fmt(A.days ? A.profit/A.days : 0) + ' مقابل ' + fmt(B.days ? B.profit/B.days : 0) + '</span>' +
-    '</div>' + metricRows(A, B, "الفترة الأولى", "الفترة الثانية");
-}
-function runWeekdayCompare(){
-  const scope = document.getElementById("wdScope").value;
-  let list = records;
-  if(scope !== "all"){ const from = addDays(today(), -Number(scope)); list = records.filter(r => r.date >= from); }
-  const box = document.getElementById("cmpResult");
-  if(!list.length){ box.innerHTML = emptyBox("لا توجد بيانات في هذا النطاق"); return; }
-
-  const byDay = Array.from({length:7}, () => ({ profit:0, net:0, n:0 }));
-  list.forEach(r => { const i = dayIndex(r.date); byDay[i].profit += r.profit; byDay[i].net += r.net; byDay[i].n++; });
-
-  const order = [];
-  for(let k = 0; k < 7; k++) order.push((Number(settings.weekStartDay) + k) % 7);
-
-  const items = order.map(i => ({ label: WEEKDAYS[i].slice(0,4), value: byDay[i].n ? byDay[i].profit / byDay[i].n : 0 }));
-  const active = order.map(i => ({ i, ...byDay[i] })).filter(x => x.n);
-  const best = active.slice().sort((a,b) => (b.profit/b.n) - (a.profit/a.n))[0];
-
-  box.innerHTML =
-    '<div class="card" style="margin:0 0 14px; box-shadow:none; border-color:var(--line);">' +
-      '<div class="card-title" style="margin-bottom:8px;">متوسط صافي الربح لكل يوم</div>' +
-      '<div class="bars" id="wdBars"></div></div>' +
-    '<div class="scroll-x"><table><thead><tr><th>اليوم</th><th>عدد المرات</th><th>متوسط المبيعات</th><th>متوسط الربح</th><th>إجمالي الربح</th></tr></thead><tbody>' +
-    order.map(i => {
-      const x = byDay[i];
-      if(!x.n) return '<tr><td class="t-strong">' + WEEKDAYS[i] + '</td><td colspan="4" class="t-mute">لا توجد بيانات</td></tr>';
-      const avg = x.profit / x.n;
-      return '<tr><td class="t-strong">' + WEEKDAYS[i] + (best && best.i === i ? ' <span class="chip up">الأفضل</span>' : "") + '</td>' +
-        '<td>' + x.n + '</td><td>' + fmt(x.net / x.n) + '</td>' +
-        '<td class="' + (avg < 0 ? "t-down" : "t-up") + '">' + fmt(avg) + '</td>' +
-        '<td class="' + (x.profit < 0 ? "t-down" : "") + '">' + fmt(x.profit) + '</td></tr>';
-    }).join("") + '</tbody></table></div>';
-  barChart(document.getElementById("wdBars"), items);
-}
-
-/* ================================================================
-   13) الإعدادات والبيانات
-   ================================================================ */
-function fillSettings(){
-  document.getElementById("setCurrency").value = settings.currency;
-  document.getElementById("setWeekStart").value = settings.weekStartDay;
-  document.getElementById("setGoal").value = settings.monthlyGoal || "";
-  document.getElementById("setMulti").checked = !!settings.allowMultiplePerDay;
-}
-document.getElementById("saveSettings").addEventListener("click", () => {
-  settings.currency = document.getElementById("setCurrency").value.trim() || "د.ل";
-  settings.weekStartDay = Number(document.getElementById("setWeekStart").value);
-  settings.monthlyGoal = num(document.getElementById("setGoal").value);
-  settings.allowMultiplePerDay = document.getElementById("setMulti").checked;
-  saveSettingsToDisk();
-  toast("حُفظت الإعدادات", "ok");
-  renderHome();
+document.querySelectorAll('[data-genderfor]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const scope = btn.dataset.genderfor;
+    const g = btn.dataset.g;
+    state[scope+'_gender'] = g;
+    btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
 });
 
-function applyTheme(){
-  document.documentElement.setAttribute("data-theme", settings.theme === "dark" ? "dark" : "light");
-  document.getElementById("themeBtn").textContent = settings.theme === "dark" ? "☀" : "◐";
-}
-document.getElementById("themeBtn").addEventListener("click", () => {
-  settings.theme = settings.theme === "dark" ? "light" : "dark";
-  saveSettingsToDisk(); applyTheme();
+bindText('f_signerName','signerName');
+bindText('f_signerTitle','signerTitle');
+
+document.getElementById('sw_stamp').addEventListener('click', function(){
+  state.showStamp = !state.showStamp;
+  this.classList.toggle('on', state.showStamp);
+  render();
+});
+document.getElementById('sw_cc').addEventListener('click', function(){
+  state.showCC = !state.showCC;
+  this.classList.toggle('on', state.showCC);
+  render();
 });
 
-document.getElementById("exportBtn").addEventListener("click", () => {
-  download(JSON.stringify({ app:"دفتر المبيعات", version:2, exportedAt:new Date().toISOString(), settings, records }, null, 2),
-    "نسخة-احتياطية-" + today() + ".json", "application/json");
-  toast("تم تصدير النسخة", "ok");
+document.getElementById('btnAddWorker').addEventListener('click', ()=>{
+  state.workers.push(freshWorker());
+  renderWorkersEditor();
+  render();
 });
-document.getElementById("importFile").addEventListener("change", function(e){
-  const file = e.target.files[0]; if(!file) return;
-  const fr = new FileReader();
-  fr.onload = ev => {
-    try{
-      const data = JSON.parse(ev.target.result);
-      if(!Array.isArray(data.records)) throw 0;
-      confirmAction("استيراد نسخة",
-        "سيحل محتوى الملف (" + data.records.length + " سجل) محل بياناتك الحالية.",
-        "استيراد", "btn-primary", () => {
-          records = data.records.map(normalize);
-          settings = { ...defaultSettings, ...(data.settings || {}) };
-          saveRecords(); saveSettingsToDisk(); applyTheme(); fillSettings();
-          toast("تم الاستيراد", "ok"); go("home");
-        });
-    }catch(err){ toast("الملف غير صالح", "err"); }
-  };
-  fr.readAsText(file); e.target.value = "";
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!confirm('سيتم مسح جميع البيانات المدخلة والبدء برسالة جديدة. متابعة؟')) return;
+  location.reload();
 });
-document.getElementById("resetBtn").addEventListener("click", () => {
-  confirmAction("حذف كل البيانات", "ستُمسح كل السجلات والإعدادات من هذا الجهاز نهائيًا. صدّر نسخة احتياطية أولًا إن أردت الاحتفاظ بها.",
-    "حذف الكل", "btn-danger", () => {
-      records = []; settings = { ...defaultSettings };
-      localStorage.removeItem(REC_KEY); localStorage.removeItem(SET_KEY);
-      localStorage.removeItem(OLD_REC); localStorage.removeItem(OLD_SET);
-      applyTheme(); fillSettings(); toast("حُذفت كل البيانات", "ok"); go("home");
+document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+/* zoom */
+let zoom = 0.65;
+function applyZoom(){
+  document.getElementById('page').style.transform = `scale(${zoom})`;
+  document.getElementById('zoomLabel').textContent = Math.round(zoom*100)+'%';
+}
+document.getElementById('zoomIn').addEventListener('click', ()=>{ zoom=Math.min(1.1, zoom+.1); applyZoom(); });
+document.getElementById('zoomOut').addEventListener('click', ()=>{ zoom=Math.max(.35, zoom-.1); applyZoom(); });
+
+/* letterhead alignment */
+const ctrlGap = document.getElementById('ctrlLetterheadGap');
+const ctrlGuide = document.getElementById('ctrlShowGuide');
+ctrlGap.addEventListener('input', render);
+ctrlGuide.addEventListener('change', render);
+
+/* ================= WORKERS EDITOR ================= */
+function renderWorkersEditor(){
+  const wrap = document.getElementById('workersEditor');
+  wrap.innerHTML = '';
+  state.workers.forEach((w, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'worker-card';
+    const isPermit = state.type === 'permit';
+    card.innerHTML = `
+      <div class="wc-head">
+        <span>عامل رقم ${idx+1}</span>
+        ${state.workers.length>1 ? `<button type="button" class="icon-btn" data-remove="${idx}">حذف ✕</button>` : ''}
+      </div>
+      <div class="worker-grid">
+        <div class="field full"><label>الاسم الكامل</label><input type="text" data-w="${idx}" data-f="name" value="${esc(w.name)}"></div>
+        <div class="field"><label>الجنسية</label><input type="text" data-w="${idx}" data-f="nationality" value="${esc(w.nationality)}"></div>
+        <div class="field"><label>تاريخ / سنة الميلاد</label><input type="text" data-w="${idx}" data-f="birth" value="${esc(w.birth)}" placeholder="مثال: 1990"></div>
+        <div class="field full"><label>رقم جواز السفر</label><input type="text" data-w="${idx}" data-f="passport" value="${esc(w.passport)}"></div>
+        ${isPermit ? `
+          <div class="field"><label>رقم التصريح</label><input type="text" data-w="${idx}" data-f="permitNo" value="${esc(w.permitNo)}"></div>
+          <div class="field"><label>تاريخ الإصدار</label><input type="date" data-w="${idx}" data-f="issueDate" value="${esc(w.issueDate)}"></div>
+        ` : `
+          <div class="field full"><label>المهنة</label><input type="text" data-w="${idx}" data-f="profession" value="${esc(w.profession)}" placeholder="مثال: مديرة منزل"></div>
+        `}
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i = +inp.dataset.w, f = inp.dataset.f;
+      state.workers[i][f] = inp.value;
+      render();
     });
-});
-document.getElementById("demoBtn").addEventListener("click", () => {
-  confirmAction("تعبئة بيانات تجريبية",
-    "ستُضاف بيانات 60 يومًا لتجربة التقارير، وستحل محل بياناتك الحالية. استخدمها للاستكشاف فقط.",
-    "تعبئة", "btn-primary", () => { seedDemo(); toast("جاهز — استعرض التقارير", "ok"); go("home"); });
-});
-function seedDemo(){
-  records = [];
-  const now = new Date().toISOString();
-  for(let i = 59; i >= 0; i--){
-    const date = addDays(today(), -i);
-    const wd = dayIndex(date);
-    if(wd === 5 && Math.random() < 0.7) continue;                 // إجازة أحيانًا
-    const boost = (wd === 4 || wd === 6) ? 1.35 : 1;              // أيام الذروة
-    const base = 900 + Math.random() * 700;
-    const cash = Math.round(base * boost * (0.55 + Math.random() * 0.2));
-    const card = Math.round(base * boost * (0.3 + Math.random() * 0.2));
-    const total = cash + card;
-    const discounts = Math.round(total * (Math.random() * 0.07));
-    const net = total - discounts;
-    const cogs = Math.round(net * (0.6 + Math.random() * 0.13));
-    const expenses = Math.round(120 + Math.random() * 90 + (wd === 6 ? 60 : 0));
-    records.push(normalize({ id: uid(), date, cash, card, discounts, cogs, expenses,
-      notes: "", createdAt: now, updatedAt: now }));
+  });
+  wrap.querySelectorAll('[data-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.workers.splice(+btn.dataset.remove, 1);
+      renderWorkersEditor();
+      render();
+    });
+  });
+}
+
+/* ================= NUMBER WORDS (1-10 basic) ================= */
+function countWord(n, gendered){
+  const map = {1:'واحد',2:'اثنان',3:'ثلاثة',4:'أربعة',5:'خمسة',6:'ستة',7:'سبعة',8:'ثمانية',9:'تسعة',10:'عشرة'};
+  return map[n] || String(n);
+}
+
+/* ================= DOCUMENT RENDER ================= */
+function render(){
+  const page = document.getElementById('page');
+  const gap = parseFloat(ctrlGap.value || 4.2);
+  const showGuide = ctrlGuide.checked;
+
+  let html = '';
+  html += `<div class="letterhead-guide" style="height:${gap}cm; display:${showGuide?'flex':'none'};">مساحة الترويسة الرسمية المطبوعة مسبقاً (${gap} سم)</div>`;
+  if(!showGuide){
+    html += `<div style="height:${gap}cm;"></div>`;
   }
-  saveRecords();
+
+  html += `<div class="doc-topline">
+      <div class="ref-block">
+        <div><b>Date:</b> ${fmtDate(state.docDate)}</div>
+        <div><b>الإشاري:</b> ${blankOr(state.refNo,'.......')}</div>
+      </div>
+      <div></div>
+    </div>`;
+
+  html += `<div class="doc-title-box"><span class="to-line">السيد / رئيس مصلحة الجوازات والجنسية وشؤون الأجانب</span></div>`;
+  html += `<div class="greeting">بعد التحية ،،،</div>`;
+
+  html += `<div class="body-text">`;
+  if(state.type === 'permit'){
+    html += permitBody();
+  } else if(state.type === 'renewal'){
+    html += renewalBody();
+  } else {
+    html += internalBody();
+  }
+  html += `</div>`;
+
+  html += `<div class="closing">
+      وذلك للتفضل بإتخاذ الإجراءات اللازمة بالخصوص ..<br>
+      شاكرين لكم حسن تعاونكم ..
+    </div>`;
+
+  html += `<div class="sign-block">
+      <div class="sig">
+        <div class="name">${esc(state.signerName)}</div>
+        <div class="title">${esc(state.signerTitle)}</div>
+      </div>
+    </div>`;
+
+  if(state.showCC){
+    html += `<div class="cc-block">
+      <div class="cc-title">صورة للسادة:</div>
+      السيد / وزير العمل والتأهيل.<br>
+      السيد / وكيل الوزارة لشؤون الاستخدام.<br>
+      قسم الإحصاء والتوثيق.<br>
+      الجهة المعنية.<br>
+      الملف الدوري العام.
+    </div>`;
+  }
+
+  html += `<div class="footer-web"><span>www.molr.gov.ly</span><span>ص.ب: 80702 / طرابلس المركز</span></div>`;
+
+  page.innerHTML = html;
 }
 
-/* ================================================================
-   14) الإقلاع
-   ================================================================ */
-function init(){
-  loadAll();
-  applyTheme();
-  const t = today();
-  document.getElementById("todayChip").textContent = dayName(t) + " " + t;
-  document.getElementById("homeDate").value = t;
-  document.getElementById("weekDate").value = t;
-  document.getElementById("monthPick").value = thisMonth();
-  F.date.value = t;
-  preview();
-  fillSettings();
-  renderHome();
+function workersTablePermit(){
+  let rows = state.workers.map((w,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td class="name-cell">${blankOr(w.name,'الاسم')}</td>
+      <td>${blankOr(w.nationality,'—')}</td>
+      <td>${blankOr(w.birth,'—')}</td>
+      <td>${blankOr(w.passport,'—')}</td>
+      <td>${blankOr(w.permitNo,'—')}</td>
+      <td>${w.issueDate? fmtDate(w.issueDate) : '—'}</td>
+    </tr>`).join('');
+  return `<table class="doc-table">
+    <thead><tr>
+      <th>م</th><th>الاسم</th><th>الجنسية</th><th>تاريخ الميلاد</th><th>جواز السفر</th><th>رقم التصريح</th><th>تاريخ الإصدار</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
-init();
+function workersTableSimple(){
+  let rows = state.workers.map((w)=>`
+    <tr>
+      <td class="name-cell">${blankOr(w.name,'الاسم')}</td>
+      <td>${blankOr(w.nationality,'—')}</td>
+      <td>${blankOr(w.birth,'—')}</td>
+      <td>${blankOr(w.passport,'—')}</td>
+      <td>${blankOr(w.profession,'—')}</td>
+    </tr>`).join('');
+  return `<table class="doc-table">
+    <thead><tr>
+      <th>الاسم</th><th>الجنسية</th><th>تاريخ الميلاد</th><th>رقم جواز السفر</th><th>المهنة</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
 
+function permitBody(){
+  const count = state.workers.length;
+  const plural = count>1 ? 'ين' : '';
+  let html = `<p>إستناداً .. على قرار وزير العمل والتأهيل رقم 392 لسنة 2021م ميلادي بشأن إصدار ضوابط استجلاب واستخدام العناصر الغير وطنية، وبناءً على تصاريح العمل الصادرة من منصة وافد الرقمية.</p>`;
+  html += `<p class="center-strong">عليه</p>`;
+  html += `<p><b>نُحيل إليكم .. تصريح العمل لعدد (${count}) مستخدم${plural} لصالح ${esc(state.p_sponsorTitle)} / ${blankOr(state.p_sponsorName,'اسم المستفيد')} .</b></p>`;
+  html += workersTablePermit();
+  return html;
+}
+
+function renewalBody(){
+  const g = state.r_gender;
+  const workerWord = g==='m' ? 'للمستخدم' : 'للمستخدمة';
+  const maAny = g==='m' ? 'المعني' : 'المعنية';
+  const mazkour = g==='m' ? 'المذكور' : 'المذكورة';
+  const damir = g==='m' ? 'ه' : 'ها';
+  let html = `<p>بالإشارة إلى طلب ${esc(state.r_applicantTitle)}/ ${blankOr(state.r_applicantName,'اسم مقدّم الطلب')} رقم وطني (${blankOr(state.r_nationalId,'.......')}) قيد عائلة رقم (${blankOr(state.r_familyNo,'.......')}) الوارد إلينا في: ${fmtDate(state.r_receivedDate)} ميلادي، بشأن طلب تجديد إذن عمل ${workerWord} :-</p>`;
+  html += workersTableSimple();
+  html += `<p>لصالح ${maAny} .</p>`;
+  html += `<p class="center-strong">عليه</p>`;
+  html += `<p><b>نفيدكم بالموافقة .. على تجديد إذن عمل ${mazkour} أعلاه لمدة سنة اعتباراً من: ${fmtDate(state.r_startDate)} ميلادي حسب البيانات بالطلب المرفق، شريطة تواجد${damir} داخل ليبيا مع التقيد بالآتي:-</b></p>`;
+  html += `<div class="conditions"><div class="cond-item">1. تقديم عقد استخدام غير وطني للإدارة في موعد لا يتجاوز 30 يوماً من تاريخ دخول ${workerWord.replace('لل','ال')}.</div></div>`;
+  if(state.showStamp) html += `<div style="text-align:center;"><div class="stamp-box">لا يُعتد إلا بالأصل</div></div>`;
+  return html;
+}
+
+function internalBody(){
+  let html = '';
+  if(state.i_sponsorType === 'individual'){
+    const g = state.i_gender;
+    const maAny = g==='m' ? 'المعني' : 'المعنية';
+    const mazkour = g==='m' ? 'المذكور' : 'المذكورة';
+    const damir = g==='m' ? 'ه' : 'ها';
+    const workerWord = g==='m' ? 'المستخدم' : 'المستخدمة';
+    html += `<p>بالإشارة إلى طلب ${esc(state.i_applicantTitle)}/ ${blankOr(state.i_applicantName,'اسم مقدّم الطلب')} قيد عائلة رقم (${blankOr(state.i_familyNo,'.......')}) الوارد (رقم) ${blankOr(state.i_receivedNo,'.......')} في: ${fmtDate(state.i_receivedDate)} ميلادي بشأن طلب الموافقة على التعاقد من الداخل ومنح إذن عمل للداخل :-</p>`;
+    html += workersTableSimple();
+    html += `<p>لصالح ${maAny} .</p>`;
+    html += `<p class="center-strong">عليه</p>`;
+    html += `<p><b>نفيدكم بالموافقة على التعاقد من الداخل ومنح إذن عمل ${mazkour} أعلاه لمدة سنة اعتباراً من: ${fmtDate(state.i_startDate)} م، حسب البيانات بالطلب المرفق، شريطة تواجد${damir} داخل ليبيا والتقيد بالآتي:-</b></p>`;
+    html += `<div class="conditions"><div class="cond-item">1. تقديم عقد استخدام غير وطني للإدارة في موعد لا يتجاوز 30 يوماً من تاريخ دخول ${workerWord}.</div></div>`;
+    html += `<div class="validity-note">صلاحية الموافقة ثلاثة أشهر من تاريخ صدورها.</div>`;
+  } else {
+    const count = state.workers.length;
+    const plural = count>1 ? 'ين' : '';
+    html += `<p>بالإشارة إلى كتاب السيد/ رئيس مجلس إدارة شركة ${blankOr(state.i_companyName,'اسم الشركة')} إشاري رقم (${blankOr(state.i_companyRefNo,'.......')}) بتاريخ: ${fmtDate(state.i_companyRefDate)} ميلادي، الوارد إلينا في: ${fmtDate(state.i_receivedDate)} ميلادي، بشأن طلب التعاقد من الداخل ومنح إذن عمل لعدد (${count}) مستخدم${plural} .</p>`;
+    html += `<p><b>لصالح / شركة ${blankOr(state.i_companyName,'اسم الشركة')} .</b></p>`;
+    if(state.i_exempt){
+      html += `<p>وبناءً على كتاب السيد/ وكيل الوزارة لشؤون الاستخدام رقم (${blankOr(state.i_underRefNo,'.......')}) بتاريخ: ${fmtDate(state.i_underRefDate)} ميلادي، بالموافقة على التعاقد من الداخل والاستثناء من شرط الدخول (مهمة) لعدد (${count}) مستخدم${plural}.</p>`;
+    }
+    html += workersTableSimple();
+    html += `<p class="center-strong">عليه</p>`;
+    html += `<p><b>نفيدكم بالموافقة .. على التعاقد من الداخل ومنح إذن عمل لعدد (${count}) مستخدم${plural} لمدة سنة اعتباراً من: ${fmtDate(state.i_startDate)} ، حسب البيانات بالطلب المرفق، شريطة تواجده${count>1?'م':''} داخل ليبيا والتقيد بالآتي:-</b></p>`;
+    html += `<div class="conditions"><div class="cond-item">1. تقديم عقد استخدام غير وطني للاعتماد في موعد لا يتجاوز 30 يوماً من تاريخ الموافقة.</div></div>`;
+    html += `<div class="validity-note">صلاحية الموافقة ثلاثة أشهر من تاريخ صدورها.</div>`;
+  }
+  if(state.showStamp) html += `<div style="text-align:center;"><div class="stamp-box">لا يُعتد إلا بالأصل</div></div>`;
+  return html;
+}
+
+/* ================= INIT ================= */
+syncTypeUI();
+renderWorkersEditor();
+applyZoom();
+render();
 </script>
 </body>
 </html>
