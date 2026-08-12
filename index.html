@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إعداد رسائل إدارة الاستخدام</title>
+<style>
+  :root{
+    --ink:#1c2b3a;
+    --navy:#0f3a5c;
+    --navy-deep:#0a2740;
+    --gold:#a9822f;
+    --gold-soft:#c9a24b;
+    --paper:#fbfaf6;
+    --line:#d9d3c2;
+    --panel:#ffffff;
+    --bg:#eef1f3;
+    --muted:#6b7580;
+    --danger:#b5452f;
+    --good:#2f7d5a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
+
+  /* ===== App shell ===== */
+  .topbar{
+    background:linear-gradient(135deg,var(--navy-deep),var(--navy) 70%);
+    color:#fff;
+    padding:16px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    box-shadow:0 2px 10px rgba(10,39,64,.25);
+    position:sticky;
+    top:0;
+    z-index:50;
+  }
+  .topbar .brand{display:flex;align-items:center;gap:12px;}
+  .topbar .emblem{
+    width:40px;height:40px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold-soft), var(--gold) 60%, #8a6a24 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;color:#12233a;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);
+    flex-shrink:0;
+  }
+  .topbar h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;}
+  .topbar p{margin:2px 0 0;font-size:12px;color:#cfe0ee;font-weight:400;}
+  .top-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{
+    border:none;border-radius:9px;padding:9px 16px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+    transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+    white-space:nowrap;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--gold);color:#1c1200;}
+  .btn-primary:hover{background:var(--gold-soft);box-shadow:0 3px 10px rgba(169,130,47,.4);}
+  .btn-ghost{background:rgba(255,255,255,.12);color:#fff;}
+  .btn-ghost:hover{background:rgba(255,255,255,.22);}
+  .btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--line);}
+  .btn-outline:hover{border-color:var(--navy);}
+  .btn-danger{background:#fdeceb;color:var(--danger);}
+  .btn-danger:hover{background:#fbdcd9;}
+  .btn-sm{padding:6px 11px;font-size:12px;border-radius:7px;}
+
+  .layout{
+    display:grid;
+    grid-template-columns:minmax(320px,420px) 1fr;
+    gap:20px;
+    padding:20px;
+    align-items:start;
+    max-width:1500px;
+    margin:0 auto;
+  }
+  @media (max-width:980px){
+    .layout{grid-template-columns:1fr;}
+  }
+
+  /* ===== Form panel ===== */
+  .panel{
+    background:var(--panel);
+    border-radius:14px;
+    box-shadow:0 1px 3px rgba(15,58,92,.08), 0 8px 24px -12px rgba(15,58,92,.18);
+    border:1px solid #e6e2d6;
+    overflow:hidden;
+  }
+  .panel-head{
+    padding:16px 18px 4px;
+  }
+  .panel-head h2{margin:0 0 2px;font-size:14px;color:var(--navy);font-weight:800;}
+  .panel-head span{font-size:12px;color:var(--muted);}
+
+  .type-tabs{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+    padding:14px 18px;
+  }
+  .type-tab{
+    border:1.5px solid var(--line);
+    background:#fff;
+    border-radius:10px;
+    padding:10px 6px;
+    text-align:center;
+    cursor:pointer;
+    font-size:12.5px;
+    font-weight:700;
+    color:#556070;
+    transition:all .15s ease;
+    line-height:1.5;
+  }
+  .type-tab small{display:block;font-weight:500;font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .type-tab.active{
+    border-color:var(--navy);
+    background:linear-gradient(180deg,#eef4fa,#e4edf6);
+    color:var(--navy);
+    box-shadow:inset 0 0 0 1px var(--navy);
+  }
+
+  .section{
+    padding:6px 18px 18px;
+    border-top:1px dashed #ece7d9;
+  }
+  .section:first-of-type{border-top:none;}
+  .section-title{
+    font-size:12px;font-weight:800;color:var(--navy);
+    margin:12px 0 10px;display:flex;align-items:center;gap:6px;
+  }
+  .section-title::before{
+    content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);
+  }
+
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;font-size:12px;font-weight:600;color:#3d4a58;margin-bottom:5px;
+  }
+  .field .hint{font-size:10.5px;color:var(--muted);font-weight:400;margin-top:3px;}
+  input[type=text], input[type=date], input[type=number], select, textarea{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:9px 11px;
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    background:#fff;
+    outline:none;
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  input:focus, select:focus, textarea:focus{
+    border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(15,58,92,.12);
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  .seg{display:flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;}
+  .seg button{
+    flex:1;border:none;background:#fff;padding:8px 6px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    font-size:12.5px;font-weight:600;color:#5b6673;cursor:pointer;border-inline-start:1.5px solid var(--line);
+  }
+  .seg button:first-child{border-inline-start:none;}
+  .seg button.active{background:var(--navy);color:#fff;}
+
+  .switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;}
+  .switch-row label{font-size:12.5px;font-weight:600;color:#3d4a58;}
+  .switch{
+    position:relative;width:40px;height:22px;border-radius:99px;background:#d9dee3;cursor:pointer;flex-shrink:0;transition:background .15s;
+  }
+  .switch.on{background:var(--navy);}
+  .switch::after{
+    content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#fff;
+    transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.25);
+  }
+  .switch.on::after{transform:translateX(-18px);}
+
+  /* worker table editor */
+  .workers-editor{border:1.5px solid var(--line);border-radius:10px;overflow:hidden;}
+  .worker-card{
+    padding:12px;border-bottom:1px solid #eee7d8;background:#fdfcf9;
+  }
+  .worker-card:last-child{border-bottom:none;}
+  .worker-card .wc-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+  }
+  .worker-card .wc-head span{font-size:12px;font-weight:800;color:var(--navy);}
+  .worker-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .worker-grid .full{grid-column:1/-1;}
+  .add-worker{
+    width:100%;padding:11px;background:#f3f6f9;border:1.5px dashed #b9c6d1;color:var(--navy);
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;border-radius:0;
+  }
+  .add-worker:hover{background:#e9eff5;}
+  .icon-btn{
+    border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:12px;font-weight:700;
+    padding:3px 6px;border-radius:6px;
+  }
+  .icon-btn:hover{background:#fdeceb;}
+
+  .footer-note{
+    padding:14px 18px;background:#f7f5ee;font-size:11.5px;color:var(--muted);line-height:1.9;border-top:1px solid #ece7d9;
+  }
+
+  /* ===== Preview / document ===== */
+  .preview-wrap{position:sticky;top:88px;}
+  .preview-toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--panel);border:1px solid #e6e2d6;border-radius:12px 12px 0 0;
+    padding:10px 16px;flex-wrap:wrap;
+  }
+  .preview-toolbar .ptitle{font-size:12.5px;font-weight:800;color:var(--navy);}
+  .zoom-controls{display:flex;align-items:center;gap:6px;}
+  .zoom-controls button{
+    width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700;color:var(--navy);
+  }
+  .align-controls{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);}
+  .align-controls input[type=number]{width:64px;padding:5px 7px;font-size:12px;}
+
+  .page-scroll{
+    background:#dfe4e8;
+    border:1px solid #e6e2d6;border-top:none;
+    border-radius:0 0 12px 12px;
+    padding:26px;
+    display:flex;justify-content:center;
+    max-height:calc(100vh - 210px);
+    overflow:auto;
+  }
+  .page{
+    width:21cm;
+    min-height:29.7cm;
+    background:var(--paper);
+    box-shadow:0 4px 24px rgba(10,39,64,.28);
+    padding:2.1cm 2cm 2.2cm;
+    font-family:'Traditional Arabic','Simplified Arabic','Segoe UI',serif;
+    color:#111;
+    position:relative;
+    transform-origin:top center;
+    flex-shrink:0;
+  }
+  .letterhead-guide{
+    border:1.5px dashed #c3b7d8;
+    background:repeating-linear-gradient(135deg, rgba(120,90,170,.05), rgba(120,90,170,.05) 10px, rgba(120,90,170,.09) 10px, rgba(120,90,170,.09) 20px);
+    border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    color:#7a6a9a;font-size:12px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;font-weight:600;
+    margin-bottom:8px;
+  }
+  .doc-topline{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    font-size:12.5px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    margin-bottom:2px;
+  }
+  .doc-topline .ref-block{line-height:1.9;color:#1c1c1c;}
+  .doc-topline .ref-block b{font-weight:700;}
+  .doc-title-box{
+    text-align:center;margin:14px 0 18px;
+  }
+  .doc-title-box .to-line{
+    font-size:16.5px;font-weight:700;text-decoration:underline;text-underline-offset:5px;display:inline-block;
+  }
+  .greeting{font-size:15px;font-weight:700;margin:6px 0 14px;}
+  .body-text p{
+    font-size:14.5px;line-height:2.15;margin:0 0 10px;text-align:justify;
+  }
+  .body-text p b{font-weight:700;}
+  .body-text .center-strong{
+    text-align:center;font-weight:800;font-size:15px;margin:14px 0 12px;
+  }
+  .doc-table{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:13.5px;}
+  .doc-table th, .doc-table td{
+    border:1px solid #222;padding:7px 6px;text-align:center;vertical-align:middle;
+  }
+  .doc-table th{background:#e7e2d3;font-weight:700;font-family:'Segoe UI','Tahoma','Arial',sans-serif;font-size:12.5px;}
+  .doc-table td.name-cell{font-weight:700;text-align:center;}
+  .conditions{font-size:14px;line-height:2;margin:4px 0 14px;padding-inline-start:2px;}
+  .conditions .cond-item{margin-bottom:4px;}
+  .validity-note{font-weight:700;text-decoration:underline;font-size:14px;margin:6px 0 14px;}
+  .stamp-box{
+    display:inline-block;border:2px solid #111;padding:5px 22px;font-weight:800;font-size:13.5px;
+    font-family:'Segoe UI','Tahoma','Arial',sans-serif;margin:6px 0 20px;
+  }
+  .closing{font-size:14.5px;line-height:2;margin:16px 0 34px;}
+  .sign-block{
+    display:flex;justify-content:flex-end;text-align:center;margin-top:10px;
+  }
+  .sign-block .sig{max-width:230px;}
+  .sign-block .sig .name{font-weight:800;font-size:14.5px;margin-bottom:2px;}
+  .sign-block .sig .title{font-size:12.5px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;color:#222;}
+  .cc-block{
+    margin-top:40px;border-top:1px solid #999;padding-top:8px;font-size:10.5px;font-family:'Segoe UI','Tahoma','Arial',sans-serif;color:#333;line-height:2;
+  }
+  .cc-block .cc-title{font-weight:700;margin-bottom:3px;}
+  .footer-web{
+    position:absolute;bottom:0.9cm;right:2cm;left:2cm;
+    display:flex;justify-content:space-between;font-size:9.5px;color:#555;font-family:'Segoe UI','Tahoma','Arial',sans-serif;
+    border-top:1px solid #ccc;padding-top:5px;
+  }
+
+  /* ===== Print ===== */
+  @media print{
+    @page{ size:A4; margin:0; }
+    body *{ visibility:hidden; }
+    .page, .page *{ visibility:visible; }
+    .page{
+      position:absolute; top:0; right:0; margin:0; box-shadow:none;
+      width:21cm; min-height:29.7cm; transform:none !important;
+    }
+    .letterhead-guide{ display:none !important; }
+    .no-print{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="emblem">وع</div>
+    <div>
+      <h1>نظام إعداد رسائل إدارة الاستخدام</h1>
+      <p>تصريح عمل · تجديد إذن عمل · تعاقد من الداخل — طباعة مباشرة على الورق الرسمي</p>
+    </div>
+  </div>
+  <div class="top-actions no-print">
+    <button class="btn btn-ghost" id="btnReset">✕ رسالة جديدة</button>
+    <button class="btn btn-primary" id="btnPrint">🖶 طباعة الرسالة</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- ================= FORM PANEL ================= -->
+  <div class="panel no-print">
+    <div class="panel-head">
+      <h2>بيانات المعاملة</h2>
+      <span>اختر نوع المعاملة وأدخل البيانات، وسيتولى النظام تنسيق الرسالة تلقائياً.</span>
+    </div>
+
+    <div class="type-tabs">
+      <div class="type-tab" data-type="permit">تصريح عمل<small>إصدار جديد</small></div>
+      <div class="type-tab" data-type="renewal">تجديد إذن عمل<small>تجديد قائم</small></div>
+      <div class="type-tab" data-type="internal">تعاقد من الداخل<small>فرد / شركة</small></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">بيانات الكتاب</div>
+      <div class="row2">
+        <div class="field">
+          <label>تاريخ الكتاب</label>
+          <input type="date" id="f_docDate">
+        </div>
+        <div class="field">
+          <label>الرقم الإشاري</label>
+          <input type="text" id="f_refNo" placeholder="مثال: 1086">
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- PERMIT fields ---- -->
+    <div class="section type-section" data-type="permit">
+      <div class="section-title">المستفيد (صاحب العمل)</div>
+      <div class="row2">
+        <div class="field">
+          <label>صفة المستفيد</label>
+          <select id="p_sponsorTitle">
+            <option value="السيد">السيد (فرد)</option>
+            <option value="السيدة">السيدة (فرد)</option>
+            <option value="شركة">شركة / منشأة</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>اسم المستفيد</label>
+          <input type="text" id="p_sponsorName" placeholder="اسم الفرد أو الشركة">
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- RENEWAL fields ---- -->
+    <div class="section type-section" data-type="renewal">
+      <div class="section-title">مقدّم الطلب</div>
+      <div class="row2">
+        <div class="field">
+          <label>صفة مقدّم الطلب</label>
+          <select id="r_applicantTitle">
+            <option value="السيد">السيد</option>
+            <option value="السيدة">السيدة</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>اسم مقدّم الطلب</label>
+          <input type="text" id="r_applicantName">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>الرقم الوطني</label>
+          <input type="text" id="r_nationalId">
+        </div>
+        <div class="field">
+          <label>رقم قيد العائلة</label>
+          <input type="text" id="r_familyNo">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>تاريخ ورود الطلب</label>
+          <input type="date" id="r_receivedDate">
+        </div>
+        <div class="field">
+          <label>تاريخ بدء التجديد</label>
+          <input type="date" id="r_startDate">
+        </div>
+      </div>
+      <div class="switch-row">
+        <label>جنس العامل(ة) — لضبط صيغة الجملة</label>
+        <div class="seg" style="width:140px;">
+          <button type="button" data-genderfor="r" data-g="f" class="active">أنثى</button>
+          <button type="button" data-genderfor="r" data-g="m">ذكر</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- INTERNAL fields ---- -->
+    <div class="section type-section" data-type="internal">
+      <div class="section-title">نوع الكفيل</div>
+      <div class="seg" style="margin-bottom:12px;">
+        <button type="button" id="i_sp_individual" class="active">فرد</button>
+        <button type="button" id="i_sp_company">شركة / منشأة</button>
+      </div>
+
+      <div id="i_individual_fields">
+        <div class="row2">
+          <div class="field">
+            <label>صفة مقدّم الطلب</label>
+            <select id="i_applicantTitle">
+              <option value="السيد">السيد</option>
+              <option value="السيدة">السيدة</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>اسم مقدّم الطلب</label>
+            <input type="text" id="i_applicantName">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>رقم قيد العائلة</label>
+            <input type="text" id="i_familyNo">
+          </div>
+          <div class="field">
+            <label>رقم الوارد</label>
+            <input type="text" id="i_receivedNo">
+          </div>
+        </div>
+      </div>
+
+      <div id="i_company_fields" style="display:none;">
+        <div class="field">
+          <label>اسم الشركة / المنشأة</label>
+          <input type="text" id="i_companyName">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>رقم كتاب الشركة الإشاري</label>
+            <input type="text" id="i_companyRefNo">
+          </div>
+          <div class="field">
+            <label>تاريخ كتاب الشركة</label>
+            <input type="date" id="i_companyRefDate">
+          </div>
+        </div>
+        <div class="switch-row">
+          <label>يوجد استثناء من شرط الدخول (مهمة)</label>
+          <div class="switch" id="i_exemptSwitch"></div>
+        </div>
+        <div id="i_exempt_fields" style="display:none;">
+          <div class="row2">
+            <div class="field">
+              <label>رقم كتاب وكيل الوزارة</label>
+              <input type="text" id="i_underRefNo">
+            </div>
+            <div class="field">
+              <label>تاريخ كتاب وكيل الوزارة</label>
+              <input type="date" id="i_underRefDate">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>تاريخ ورود الطلب</label>
+          <input type="date" id="i_receivedDate">
+        </div>
+        <div class="field">
+          <label>تاريخ بدء العمل</label>
+          <input type="date" id="i_startDate">
+        </div>
+      </div>
+      <div class="switch-row" id="i_genderRow">
+        <label>جنس العامل(ة) — لضبط صيغة الجملة</label>
+        <div class="seg" style="width:140px;">
+          <button type="button" data-genderfor="i" data-g="f" class="active">أنثى</button>
+          <button type="button" data-genderfor="i" data-g="m">ذكر</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- Workers ---- -->
+    <div class="section">
+      <div class="section-title">بيانات العامل / العمال</div>
+      <div class="workers-editor" id="workersEditor"></div>
+      <button type="button" class="add-worker" id="btnAddWorker">+ إضافة عامل</button>
+    </div>
+
+    <!-- ---- Signature & extras ---- -->
+    <div class="section">
+      <div class="section-title">التوقيع وخيارات إضافية</div>
+      <div class="row2">
+        <div class="field">
+          <label>اسم الموقّع</label>
+          <input type="text" id="f_signerName" value="أ. يوسف الطاهر المهدي الشائبي">
+        </div>
+        <div class="field">
+          <label>صفة الموقّع</label>
+          <input type="text" id="f_signerTitle" value="مدير إدارة الاستخدام / المكلف">
+        </div>
+      </div>
+      <div class="switch-row">
+        <label>إظهار عبارة "لا يُعتد إلا بالأصل"</label>
+        <div class="switch on" id="sw_stamp"></div>
+      </div>
+      <div class="switch-row">
+        <label>إظهار قائمة التوزيع (صورة للسادة)</label>
+        <div class="switch on" id="sw_cc"></div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      💡 تُطبع الرسالة مباشرة على ورقة الوزارة الرسمية ذات الترويسة المطبوعة مسبقاً. استخدم شريط "محاذاة الترويسة" في لوحة المعاينة لضبط المساحة العلوية الفارغة بما يطابق الورقة، ثم اضغط "طباعة الرسالة".
+    </div>
+  </div>
+
+  <!-- ================= PREVIEW ================= -->
+  <div class="preview-col">
+    <div class="preview-wrap">
+      <div class="preview-toolbar no-print">
+        <span class="ptitle">معاينة الرسالة</span>
+        <div class="align-controls">
+          <span>محاذاة الترويسة (سم)</span>
+          <input type="number" id="ctrlLetterheadGap" min="0" max="12" step="0.1" value="4.2">
+          <label style="display:flex;align-items:center;gap:5px;">
+            <input type="checkbox" id="ctrlShowGuide" checked style="width:auto;"> إظهار الدليل
+          </label>
+        </div>
+        <div class="zoom-controls">
+          <button id="zoomOut">−</button>
+          <span id="zoomLabel" style="font-size:12px;min-width:38px;text-align:center;display:inline-block;">65%</span>
+          <button id="zoomIn">+</button>
+        </div>
+      </div>
+      <div class="page-scroll">
+        <div class="page" id="page" style="transform:scale(.65);">
+          <!-- generated content injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= STATE ================= */
+const state = {
+  type: 'permit',
+  docDate: todayISO(),
+  refNo: '',
+  // permit
+  p_sponsorTitle: 'السيد',
+  p_sponsorName: '',
+  // renewal
+  r_applicantTitle: 'السيد',
+  r_applicantName: '',
+  r_nationalId: '',
+  r_familyNo: '',
+  r_receivedDate: '',
+  r_startDate: '',
+  r_gender: 'f',
+  // internal
+  i_sponsorType: 'individual',
+  i_applicantTitle: 'السيد',
+  i_applicantName: '',
+  i_familyNo: '',
+  i_receivedNo: '',
+  i_companyName: '',
+  i_companyRefNo: '',
+  i_companyRefDate: '',
+  i_exempt: false,
+  i_underRefNo: '',
+  i_underRefDate: '',
+  i_receivedDate: '',
+  i_startDate: '',
+  i_gender: 'f',
+  // signature
+  signerName: 'أ. يوسف الطاهر المهدي الشائبي',
+  signerTitle: 'مدير إدارة الاستخدام / المكلف',
+  showStamp: true,
+  showCC: true,
+  workers: [ freshWorker() ]
+};
+
+function freshWorker(){
+  return { name:'', nationality:'', birth:'', passport:'', profession:'', permitNo:'', issueDate:'' };
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '..........';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function esc(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function blankOr(s, ph){ const v=esc(s); return v? v : `<span style="color:#9a958a;">${ph}</span>`; }
+
+/* ================= WIRE UP FORM ================= */
+document.querySelectorAll('.type-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    state.type = tab.dataset.type;
+    syncTypeUI();
+    render();
+  });
+});
+
+function syncTypeUI(){
+  document.querySelectorAll('.type-tab').forEach(t=>t.classList.toggle('active', t.dataset.type===state.type));
+  document.querySelectorAll('.type-section').forEach(s=>{
+    s.style.display = (s.dataset.type===state.type) ? '' : 'none';
+  });
+  renderWorkersEditor();
+}
+
+const bindText = (id, key)=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', ()=>{ state[key]=el.value; render(); });
+};
+bindText('f_docDate','docDate'); document.getElementById('f_docDate').value = state.docDate;
+bindText('f_refNo','refNo');
+bindText('p_sponsorTitle','p_sponsorTitle');
+document.getElementById('p_sponsorTitle').addEventListener('change', e=>{ state.p_sponsorTitle=e.target.value; render();});
+bindText('p_sponsorName','p_sponsorName');
+
+document.getElementById('r_applicantTitle').addEventListener('change', e=>{ state.r_applicantTitle=e.target.value; render();});
+bindText('r_applicantName','r_applicantName');
+bindText('r_nationalId','r_nationalId');
+bindText('r_familyNo','r_familyNo');
+bindText('r_receivedDate','r_receivedDate');
+bindText('r_startDate','r_startDate');
+
+document.getElementById('i_applicantTitle').addEventListener('change', e=>{ state.i_applicantTitle=e.target.value; render();});
+bindText('i_applicantName','i_applicantName');
+bindText('i_familyNo','i_familyNo');
+bindText('i_receivedNo','i_receivedNo');
+bindText('i_companyName','i_companyName');
+bindText('i_companyRefNo','i_companyRefNo');
+bindText('i_companyRefDate','i_companyRefDate');
+bindText('i_underRefNo','i_underRefNo');
+bindText('i_underRefDate','i_underRefDate');
+bindText('i_receivedDate','i_receivedDate');
+bindText('i_startDate','i_startDate');
+
+document.getElementById('i_sp_individual').addEventListener('click', ()=>{
+  state.i_sponsorType='individual';
+  document.getElementById('i_sp_individual').classList.add('active');
+  document.getElementById('i_sp_company').classList.remove('active');
+  document.getElementById('i_individual_fields').style.display='';
+  document.getElementById('i_company_fields').style.display='none';
+  document.getElementById('i_genderRow').style.display='';
+  render();
+});
+document.getElementById('i_sp_company').addEventListener('click', ()=>{
+  state.i_sponsorType='company';
+  document.getElementById('i_sp_company').classList.add('active');
+  document.getElementById('i_sp_individual').classList.remove('active');
+  document.getElementById('i_company_fields').style.display='';
+  document.getElementById('i_individual_fields').style.display='none';
+  document.getElementById('i_genderRow').style.display='none';
+  render();
+});
+document.getElementById('i_exemptSwitch').addEventListener('click', function(){
+  state.i_exempt = !state.i_exempt;
+  this.classList.toggle('on', state.i_exempt);
+  document.getElementById('i_exempt_fields').style.display = state.i_exempt ? '' : 'none';
+  render();
+});
+
+document.querySelectorAll('[data-genderfor]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const scope = btn.dataset.genderfor;
+    const g = btn.dataset.g;
+    state[scope+'_gender'] = g;
+    btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+bindText('f_signerName','signerName');
+bindText('f_signerTitle','signerTitle');
+
+document.getElementById('sw_stamp').addEventListener('click', function(){
+  state.showStamp = !state.showStamp;
+  this.classList.toggle('on', state.showStamp);
+  render();
+});
+document.getElementById('sw_cc').addEventListener('click', function(){
+  state.showCC = !state.showCC;
+  this.classList.toggle('on', state.showCC);
+  render();
+});
+
+document.getElementById('btnAddWorker').addEventListener('click', ()=>{
+  state.workers.push(freshWorker());
+  renderWorkersEditor();
+  render();
+});
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!confirm('سيتم مسح جميع البيانات المدخلة والبدء برسالة جديدة. متابعة؟')) return;
+  location.reload();
+});
+document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+/* zoom */
+let zoom = 0.65;
+function applyZoom(){
+  document.getElementById('page').style.transform = `scale(${zoom})`;
+  document.getElementById('zoomLabel').textContent = Math.round(zoom*100)+'%';
+}
+document.getElementById('zoomIn').addEventListener('click', ()=>{ zoom=Math.min(1.1, zoom+.1); applyZoom(); });
+document.getElementById('zoomOut').addEventListener('click', ()=>{ zoom=Math.max(.35, zoom-.1); applyZoom(); });
+
+/* letterhead alignment */
+const ctrlGap = document.getElementById('ctrlLetterheadGap');
+const ctrlGuide = document.getElementById('ctrlShowGuide');
+ctrlGap.addEventListener('input', render);
+ctrlGuide.addEventListener('change', render);
+
+/* ================= WORKERS EDITOR ================= */
+function renderWorkersEditor(){
+  const wrap = document.getElementById('workersEditor');
+  wrap.innerHTML = '';
+  state.workers.forEach((w, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'worker-card';
+    const isPermit = state.type === 'permit';
+    card.innerHTML = `
+      <div class="wc-head">
+        <span>عامل رقم ${idx+1}</span>
+        ${state.workers.length>1 ? `<button type="button" class="icon-btn" data-remove="${idx}">حذف ✕</button>` : ''}
+      </div>
+      <div class="worker-grid">
+        <div class="field full"><label>الاسم الكامل</label><input type="text" data-w="${idx}" data-f="name" value="${esc(w.name)}"></div>
+        <div class="field"><label>الجنسية</label><input type="text" data-w="${idx}" data-f="nationality" value="${esc(w.nationality)}"></div>
+        <div class="field"><label>تاريخ / سنة الميلاد</label><input type="text" data-w="${idx}" data-f="birth" value="${esc(w.birth)}" placeholder="مثال: 1990"></div>
+        <div class="field full"><label>رقم جواز السفر</label><input type="text" data-w="${idx}" data-f="passport" value="${esc(w.passport)}"></div>
+        ${isPermit ? `
+          <div class="field"><label>رقم التصريح</label><input type="text" data-w="${idx}" data-f="permitNo" value="${esc(w.permitNo)}"></div>
+          <div class="field"><label>تاريخ الإصدار</label><input type="date" data-w="${idx}" data-f="issueDate" value="${esc(w.issueDate)}"></div>
+        ` : `
+          <div class="field full"><label>المهنة</label><input type="text" data-w="${idx}" data-f="profession" value="${esc(w.profession)}" placeholder="مثال: مديرة منزل"></div>
+        `}
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i = +inp.dataset.w, f = inp.dataset.f;
+      state.workers[i][f] = inp.value;
+      render();
+    });
+  });
+  wrap.querySelectorAll('[data-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.workers.splice(+btn.dataset.remove, 1);
+      renderWorkersEditor();
+      render();
+    });
+  });
+}
+
+/* ================= NUMBER WORDS (1-10 basic) ================= */
+function countWord(n, gendered){
+  const map = {1:'واحد',2:'اثنان',3:'ثلاثة',4:'أربعة',5:'خمسة',6:'ستة',7:'سبعة',8:'ثمانية',9:'تسعة',10:'عشرة'};
+  return map[n] || String(n);
+}
+
+/* ================= DOCUMENT RENDER ================= */
+function render(){
+  const page = document.getElementById('page');
+  const gap = parseFloat(ctrlGap.value || 4.2);
+  const showGuide = ctrlGuide.checked;
+
+  let html = '';
+  html += `<div class="letterhead-guide" style="height:${gap}cm; display:${showGuide?'flex':'none'};">مساحة الترويسة الرسمية المطبوعة مسبقاً (${gap} سم)</div>`;
+  if(!showGuide){
+    html += `<div style="height:${gap}cm;"></div>`;
+  }
+
+  html += `<div class="doc-topline">
+      <div class="ref-block">
+        <div><b>Date:</b> ${fmtDate(state.docDate)}</div>
+        <div><b>الإشاري:</b> ${blankOr(state.refNo,'.......')}</div>
+      </div>
+      <div></div>
+    </div>`;
+
+  html += `<div class="doc-title-box"><span class="to-line">السيد / رئيس مصلحة الجوازات والجنسية وشؤون الأجانب</span></div>`;
+  html += `<div class="greeting">بعد التحية ،،،</div>`;
+
+  html += `<div class="body-text">`;
+  if(state.type === 'permit'){
+    html += permitBody();
+  } else if(state.type === 'renewal'){
+    html += renewalBody();
+  } else {
+    html += internalBody();
+  }
+  html += `</div>`;
+
+  html += `<div class="closing">
+      وذلك للتفضل بإتخاذ الإجراءات اللازمة بالخصوص ..<br>
+      شاكرين لكم حسن تعاونكم ..
+    </div>`;
+
+  html += `<div class="sign-block">
+      <div class="sig">
+        <div class="name">${esc(state.signerName)}</div>
+        <div class="title">${esc(state.signerTitle)}</div>
+      </div>
+    </div>`;
+
+  if(state.showCC){
+    html += `<div class="cc-block">
+      <div class="cc-title">صورة للسادة:</div>
+      السيد / وزير العمل والتأهيل.<br>
+      السيد / وكيل الوزارة لشؤون الاستخدام.<br>
+      قسم الإحصاء والتوثيق.<br>
+      الجهة المعنية.<br>
+      الملف الدوري العام.
+    </div>`;
+  }
+
+  html += `<div class="footer-web"><span>www.molr.gov.ly</span><span>ص.ب: 80702 / طرابلس المركز</span></div>`;
+
+  page.innerHTML = html;
+}
+
+function workersTablePermit(){
+  let rows = state.workers.map((w,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td class="name-cell">${blankOr(w.name,'الاسم')}</td>
+      <td>${blankOr(w.nationality,'—')}</td>
+      <td>${blankOr(w.birth,'—')}</td>
+      <td>${blankOr(w.passport,'—')}</td>
+      <td>${blankOr(w.permitNo,'—')}</td>
+      <td>${w.issueDate? fmtDate(w.issueDate) : '—'}</td>
+    </tr>`).join('');
+  return `<table class="doc-table">
+    <thead><tr>
+      <th>م</th><th>الاسم</th><th>الجنسية</th><th>تاريخ الميلاد</th><th>جواز السفر</th><th>رقم التصريح</th><th>تاريخ الإصدار</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+function workersTableSimple(){
+  let rows = state.workers.map((w)=>`
+    <tr>
+      <td class="name-cell">${blankOr(w.name,'الاسم')}</td>
+      <td>${blankOr(w.nationality,'—')}</td>
+      <td>${blankOr(w.birth,'—')}</td>
+      <td>${blankOr(w.passport,'—')}</td>
+      <td>${blankOr(w.profession,'—')}</td>
+    </tr>`).join('');
+  return `<table class="doc-table">
+    <thead><tr>
+      <th>الاسم</th><th>الجنسية</th><th>تاريخ الميلاد</th><th>رقم جواز السفر</th><th>المهنة</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function permitBody(){
+  const count = state.workers.length;
+  const plural = count>1 ? 'ين' : '';
+  let html = `<p>إستناداً .. على قرار وزير العمل والتأهيل رقم 392 لسنة 2021م ميلادي بشأن إصدار ضوابط استجلاب واستخدام العناصر الغير وطنية، وبناءً على تصاريح العمل الصادرة من منصة وافد الرقمية.</p>`;
+  html += `<p class="center-strong">عليه</p>`;
+  html += `<p><b>نُحيل إليكم .. تصريح العمل لعدد (${count}) مستخدم${plural} لصالح ${esc(state.p_sponsorTitle)} / ${blankOr(state.p_sponsorName,'اسم المستفيد')} .</b></p>`;
+  html += workersTablePermit();
+  return html;
+}
+
+function renewalBody(){
+  const g = state.r_gender;
+  const workerWord = g==='m' ? 'للمستخدم' : 'للمستخدمة';
+  const maAny = g==='m' ? 'المعني' : 'المعنية';
+  const mazkour = g==='m' ? 'المذكور' : 'المذكورة';
+  const damir = g==='m' ? 'ه' : 'ها';
+  let html = `<p>بالإشارة إلى طلب ${esc(state.r_applicantTitle)}/ ${blankOr(state.r_applicantName,'اسم مقدّم الطلب')} رقم وطني (${blankOr(state.r_nationalId,'.......')}) قيد عائلة رقم (${blankOr(state.r_familyNo,'.......')}) الوارد إلينا في: ${fmtDate(state.r_receivedDate)} ميلادي، بشأن طلب تجديد إذن عمل ${workerWord} :-</p>`;
+  html += workersTableSimple();
+  html += `<p>لصالح ${maAny} .</p>`;
+  html += `<p class="center-strong">عليه</p>`;
+  html += `<p><b>نفيدكم بالموافقة .. على تجديد إذن عمل ${mazkour} أعلاه لمدة سنة اعتباراً من: ${fmtDate(state.r_startDate)} ميلادي حسب البيانات بالطلب المرفق، شريطة تواجد${damir} داخل ليبيا مع التقيد بالآتي:-</b></p>`;
+  html += `<div class="conditions"><div class="cond-item">1. تقديم عقد استخدام غير وطني للإدارة في موعد لا يتجاوز 30 يوماً من تاريخ دخول ${workerWord.replace('لل','ال')}.</div></div>`;
+  if(state.showStamp) html += `<div style="text-align:center;"><div class="stamp-box">لا يُعتد إلا بالأصل</div></div>`;
+  return html;
+}
+
+function internalBody(){
+  let html = '';
+  if(state.i_sponsorType === 'individual'){
+    const g = state.i_gender;
+    const maAny = g==='m' ? 'المعني' : 'المعنية';
+    const mazkour = g==='m' ? 'المذكور' : 'المذكورة';
+    const damir = g==='m' ? 'ه' : 'ها';
+    const workerWord = g==='m' ? 'المستخدم' : 'المستخدمة';
+    html += `<p>بالإشارة إلى طلب ${esc(state.i_applicantTitle)}/ ${blankOr(state.i_applicantName,'اسم مقدّم الطلب')} قيد عائلة رقم (${blankOr(state.i_familyNo,'.......')}) الوارد (رقم) ${blankOr(state.i_receivedNo,'.......')} في: ${fmtDate(state.i_receivedDate)} ميلادي بشأن طلب الموافقة على التعاقد من الداخل ومنح إذن عمل للداخل :-</p>`;
+    html += workersTableSimple();
+    html += `<p>لصالح ${maAny} .</p>`;
+    html += `<p class="center-strong">عليه</p>`;
+    html += `<p><b>نفيدكم بالموافقة على التعاقد من الداخل ومنح إذن عمل ${mazkour} أعلاه لمدة سنة اعتباراً من: ${fmtDate(state.i_startDate)} م، حسب البيانات بالطلب المرفق، شريطة تواجد${damir} داخل ليبيا والتقيد بالآتي:-</b></p>`;
+    html += `<div class="conditions"><div class="cond-item">1. تقديم عقد استخدام غير وطني للإدارة في موعد لا يتجاوز 30 يوماً من تاريخ دخول ${workerWord}.</div></div>`;
+    html += `<div class="validity-note">صلاحية الموافقة ثلاثة أشهر من تاريخ صدورها.</div>`;
+  } else {
+    const count = state.workers.length;
+    const plural = count>1 ? 'ين' : '';
+    html += `<p>بالإشارة إلى كتاب السيد/ رئيس مجلس إدارة شركة ${blankOr(state.i_companyName,'اسم الشركة')} إشاري رقم (${blankOr(state.i_companyRefNo,'.......')}) بتاريخ: ${fmtDate(state.i_companyRefDate)} ميلادي، الوارد إلينا في: ${fmtDate(state.i_receivedDate)} ميلادي، بشأن طلب التعاقد من الداخل ومنح إذن عمل لعدد (${count}) مستخدم${plural} .</p>`;
+    html += `<p><b>لصالح / شركة ${blankOr(state.i_companyName,'اسم الشركة')} .</b></p>`;
+    if(state.i_exempt){
+      html += `<p>وبناءً على كتاب السيد/ وكيل الوزارة لشؤون الاستخدام رقم (${blankOr(state.i_underRefNo,'.......')}) بتاريخ: ${fmtDate(state.i_underRefDate)} ميلادي، بالموافقة على التعاقد من الداخل والاستثناء من شرط الدخول (مهمة) لعدد (${count}) مستخدم${plural}.</p>`;
+    }
+    html += workersTableSimple();
+    html += `<p class="center-strong">عليه</p>`;
+    html += `<p><b>نفيدكم بالموافقة .. على التعاقد من الداخل ومنح إذن عمل لعدد (${count}) مستخدم${plural} لمدة سنة اعتباراً من: ${fmtDate(state.i_startDate)} ، حسب البيانات بالطلب المرفق، شريطة تواجده${count>1?'م':''} داخل ليبيا والتقيد بالآتي:-</b></p>`;
+    html += `<div class="conditions"><div class="cond-item">1. تقديم عقد استخدام غير وطني للاعتماد في موعد لا يتجاوز 30 يوماً من تاريخ الموافقة.</div></div>`;
+    html += `<div class="validity-note">صلاحية الموافقة ثلاثة أشهر من تاريخ صدورها.</div>`;
+  }
+  if(state.showStamp) html += `<div style="text-align:center;"><div class="stamp-box">لا يُعتد إلا بالأصل</div></div>`;
+  return html;
+}
+
+/* ================= INIT ================= */
+syncTypeUI();
+renderWorkersEditor();
+applyZoom();
+render();
+</script>
+</body>
+</html>
